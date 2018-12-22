@@ -1,4 +1,25 @@
-module CellAutomata.LifeLike exposing (AliveNeighbors(..),step,Automata,automata,Symmetry,fullSymmetry,noSymmetry,rot90Symmetry,automataWithCustomSymmetry,automataWithoutSymmetry,RuleExpression,Neighborhood,anyNeigborhood,Rule,Grid,State(..),Location)
+module CellAutomata.LifeLike exposing (
+    AliveNeighbors(..),
+    step,
+    Automata,
+    automata,
+    Symmetry,
+    horMirrorSymmetry,
+    vertMirrorSymmetry,
+    fullSymmetry,
+    noSymmetry,
+    rot90Symmetry,
+    rot45Symmetry,
+    automataWithCustomSymmetry,
+    automataWithoutSymmetry,
+    RuleExpression,
+    Neighborhood,
+    anyNeigborhood,
+    Rule,
+    Grid,
+    State(..),
+    Location
+    )
 
 {-| 
 This module was created to give a smooth introduction to the main module,  
@@ -36,8 +57,11 @@ where only the four direct neighbors (North,South,East,West) are considered.
 ## Automata
 @docs automataWithoutSymmetry
 
-##Custom Symmetry
-@docs Symmetry,fullSymmetry,noSymmetry,rot90Symmetry,automataWithCustomSymmetry
+## Symmetry
+@docs Symmetry,fullSymmetry,noSymmetry,horMirrorSymmetry,vertMirrorSymmetry,rot45Symmetry,rot90Symmetry
+
+## Automata with Symmetry
+@docs automataWithCustomSymmetry
 -}
 
 import Dict exposing (Dict)
@@ -330,12 +354,55 @@ subFuncRotate list = case list of
     [] -> []
     a :: tail -> List.append tail [a]
 
-{-| Pattern may be rotated in any position.
+{-| Pattern may be horizontally mirrored
 -}
-rot45Symmetry n state neighborhood {from,neighbors} =
+horMirrorSymmetry : Symmetry
+horMirrorSymmetry state neighborhood {from,neighbors} =
     let
         directions : List (Neighborhood a -> a)
-        directions = [.north,.northEast,.east,.southEast,.south,.southWest,.west,.west]
+        directions = [.north,.northEast,.east,.southEast,.south,.southWest,.west,.northWest]
+
+        mirrored : List (Neighborhood a -> a)
+        mirrored = [.south,.southEast,.east,.northEast,.north,.northWest,.west,.southWest]
+
+        compareLists = 
+            subFuncCompareLists neighbors neighborhood directions
+    in
+    (state == from)
+    &&
+    (
+        (compareLists directions)
+        || (compareList mirrored)
+    )
+
+{-| Pattern may be vertically mirrored
+-}
+vertMirrorSymmetry : Symmetry
+vertMirrorSymmetry state neighborhood {from,neighbors} =
+    let
+        directions : List (Neighborhood a -> a)
+        directions = [.north,.northEast,.east,.southEast,.south,.southWest,.west,.northWest]
+
+        mirrored : List (Neighborhood a -> a)
+        mirrored = [.north,.northWest,.west,.southWest,.south,.southEast,.east,.northEast]
+
+        compareLists = 
+            subFuncCompareLists neighbors neighborhood directions
+    in
+    (state == from)
+    &&
+    (
+        (compareLists directions)
+        || (compareList mirrored)
+    )
+
+{-| Pattern may be rotated in any position.
+-}
+rot45Symmetry : Symmetry
+rot45Symmetry state neighborhood {from,neighbors} =
+    let
+        directions : List (Neighborhood a -> a)
+        directions = [.north,.northEast,.east,.southEast,.south,.southWest,.west,.northWest]
         
         rot : List (Neighborhood a -> a) -> List (Neighborhood a -> a)
         rot = subFuncRotate
@@ -382,7 +449,7 @@ rot90Symmetry : Symmetry
 rot90Symmetry state neighborhood {from,neighbors} =
     let
         directions : List (Neighborhood a -> a)
-        directions = [.north,.northEast,.east,.southEast,.south,.southWest,.west,.west]
+        directions = [.north,.northEast,.east,.southEast,.south,.southWest,.west,.northWest]
         
         rot : List (Neighborhood a -> a) -> List (Neighborhood a -> a)
         rot = subFuncRotate >> subFuncRotate
@@ -412,21 +479,14 @@ rot90Symmetry state neighborhood {from,neighbors} =
 noSymmetry : Symmetry
 noSymmetry state neighborhood {from,neighbors} =
     let
-        compare : (RuleExpression (Maybe State)) -> (Maybe State) -> Bool
-        compare expression b =
-            case expression of
-                Exactly a -> a == b
-                Anything -> True
+        directions : List (Neighborhood a -> a)
+        directions = [.north,.northEast,.east,.southEast,.south,.southWest,.west,.northWest]
+
+        compareLists = 
+            subFuncCompareLists neighbors neighborhood directions
     in
-    (state == from)
-    && (neighborhood.north |> compare neighbors.north)
-    && (neighborhood.northEast |> compare neighbors.northEast)
-    && (neighborhood.east |> compare neighbors.east)
-    && (neighborhood.southEast |> compare neighbors.southEast)
-    && (neighborhood.south |> compare neighbors.south)
-    && (neighborhood.southWest |> compare neighbors.southWest)
-    && (neighborhood.west |> compare neighbors.west)
-    && (neighborhood.northWest |> compare neighbors.northWest)
+    (state == from) && (compareLists directions)
+
 
 type alias NeighborhoodFunction
     = Location -> Grid -> Neighborhood (Maybe State)
