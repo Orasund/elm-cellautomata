@@ -41,7 +41,7 @@ where only the four direct neighbors (North,South,East,West) are considered.
 -}
 
 import Dict exposing (Dict)
-import CellAutomata
+import CellAutomata.General as General
 
 {-| The State will specify all posible states a Cell can be in (besides a empty Cell)
 
@@ -78,7 +78,8 @@ This is why we represent the grid as a dictionary.
 type alias Grid =
     Dict Location State
 
-{-| RuleExpressions give us a very flexible way of talking about neighbors.  
+{-| RuleExpressions give us a very flexible way of talking about neighbors.
+
 When writing a rule for the neighbors, they can now have one of the following values:  
 * **(Exactly <| Just Alive)** - its alive
 * **(Exactly <| Nothing)** - its dead
@@ -94,7 +95,8 @@ type RuleExpression state
     = Exactly state
     | Anything
 
-{-| This replaces the `AliveNeighbors` type.  
+{-| This replaces the `AliveNeighbors` type.
+
 Instead of saying "one alive neighbor", we now need to explicitly specify where
 this neighbor is located.
 
@@ -124,15 +126,7 @@ we might specify it the following way
     , west : Exactly d
     }
 -}
-anyNeigborhood : { north : (RuleExpression (Maybe State))
-    , northEast : (RuleExpression (Maybe State))
-    , east : (RuleExpression (Maybe State))
-    , southEast : (RuleExpression (Maybe State))
-    , south : (RuleExpression (Maybe State))
-    , southWest : (RuleExpression (Maybe State))
-    , west : (RuleExpression (Maybe State))
-    , northWest : (RuleExpression (Maybe State))
-    }
+anyNeigborhood : Neighborhood (RuleExpression (Maybe State))
 anyNeigborhood =
     { north = Anything
     , northEast = Anything
@@ -265,7 +259,10 @@ createNeighborhood neighbors = case neighbors of
 {-| A rule now needs a Neighborhood instead of an `AliveNeighbors`-value.
 -}
 type alias Rule
-    = {from:Maybe State,neighbors:Neighborhood (RuleExpression (Maybe State)),to:Maybe State}
+    = {from:Maybe State
+      ,neighbors:Neighborhood (RuleExpression (Maybe State))
+      ,to:Maybe State
+      }
 
 {-| A symmetry is just a function that determines when a rule is sucessfully applied.  
 During this documentation we have already encountered two different symmetries:  
@@ -452,7 +449,7 @@ Sometimes more then one automata should act on to the same Grid.
 For this reason it is its own type.
 -}
 type alias Automata
-    = CellAutomata.Automata (Neighborhood (Maybe State)) (Neighborhood (RuleExpression (Maybe State))) Location State
+    = General.Automata (Neighborhood (Maybe State)) (Neighborhood (RuleExpression (Maybe State))) Location State
 
 {-| The input is a list of rules.  
 As an example, lets look at the rules for conway's game of life:
@@ -561,9 +558,9 @@ Going back to the old example, this can now be done the following way:
 -}
 automataWithCustomSymmetry : Symmetry -> List Rule -> Automata
 automataWithCustomSymmetry symmetry listOfRules =
-  CellAutomata.Automata { ruleSet =
+  General.Automata { ruleSet =
       listOfRules
-        |> CellAutomata.ruleSet order
+        |> General.ruleSet order
   , symmetry = symmetry
   , neighborhoodFunction = neighborhoodFunction
   , order = order
@@ -583,4 +580,4 @@ It has a wierd type, but thats because it is meant to be used with Dict.update:
         grid
 -}
 step : Automata -> Grid -> (Location -> Maybe State -> Maybe State)
-step = CellAutomata.step
+step = General.step
