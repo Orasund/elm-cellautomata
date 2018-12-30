@@ -72,7 +72,7 @@ import CellAutomata.General as General
 This means cells will be of type `Maybe State`.  
 This way its clear that, if not specified otherwise, a cell will be `Nothing`.  
 In this module there is just one other state: `Just Alive`.  
-If you want to add more states, then you should go to the main module.  
+If you want to add more states, then you should go to the main module.
 -}
 type State = Alive
 
@@ -82,7 +82,7 @@ order maybeState = case maybeState of
   Just Alive -> 1
 
 {-| The location is the unique identifier for any cell.  
-For our purpose we use `(x,y)`-coordinates.  
+For our purpose we use `(x,y)`-coordinates.
 
 **Note:** The south of `(0,0)` is `(0,y)` while the north is `(0,-y)`.
 -}
@@ -522,10 +522,22 @@ As an example, lets look at the rules for conway's game of life:
 
 Implemented, these rules look like this:
 
-    [ {from = Just Alive, neighbors = TwoAlive, to = Just Alive}
-    , {from = Just Alive, neighbors = ThreeAlive, to = Just Alive}
-    , {from = Just Alive, neighbors = AnyAmount, to = Nothing}
-    , {from = Nothing, neighbors = ThreeAlive, to = Just Alive}
+    [ { from = Just Alive
+      , neighbors = TwoAlive
+      , to = Just Alive
+      }
+    , { from = Just Alive
+      , neighbors = ThreeAlive
+      , to = Just Alive
+      }
+    , { from = Just Alive
+      , neighbors = AnyAmount
+      , to = Nothing
+      }
+    , { from = Nothing
+      , neighbors = ThreeAlive
+      , to = Just Alive
+      }
     ]
 
 The order of the rules are important: the automata will go through the list,  
@@ -542,7 +554,8 @@ automata =
 {-| This function uses no symmetry, this means every possible combination must be
 specified.
 
-    automataWithoutSymmetry = automataWithCustomSymmetry noSymmetry
+    automataWithoutSymmetry =
+        automataWithCustomSymmetry noSymmetry
 
 **This function is not useful in practice.**  
 **Most often you want at least rotational or mirrored symmetry**  
@@ -612,7 +625,10 @@ Going back to the old example, this can now be done the following way:
       , to = Just Alive
       , neighbors = neighbors (Just Alive) Nothing Nothing Nothing
       }
-    , {from = Just Alive, to = Nothing, neighbors = anyNeighborhood}
+    , {from = Just Alive
+      , to = Nothing
+      , neighbors = anyNeighborhood
+      }
     , {from = Nothing
       , to = Just Alive
       , neighbors = neighbors (Just Alive) Nothing Nothing Nothing
@@ -639,7 +655,11 @@ It has a wierd type, but thats because it is meant to be used with Dict.update:
         (\x g ->
             List.range 0 10
             |> List.foldl
-                (\y -> Dict.update (x,y) ((x,y) |> step automata grid))
+                (\y ->
+                    Dict.update
+                        (x,y)
+                        ( (x,y) |> step automata grid )
+                )
                 g
         )
         grid

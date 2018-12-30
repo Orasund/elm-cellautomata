@@ -1,6 +1,6 @@
 module CellAutomata exposing
     ( Order, Grid, Location
-    , RuleExpression, Neighborhood, anyNeigborhood, Rule
+    , RuleExpression(..), Neighborhood, anyNeigborhood, Rule
     , step, Automata, automataWithoutSymmetry
     , Symmetry, noSymmetry, horMirrorSymmetry, vertMirrorSymmetry, rot45Symmetry, rot90Symmetry
     , automata
@@ -46,8 +46,8 @@ Our state will now be the following
 
 # Symmetries
 
-Now that we need to specify our own state, it is no longer possible to write a
-fullSymmetry-Function(and it is not adviced to do so).
+Now that we specify our own state, it is no longer possible to write a
+`fullSymmetry`-function (and it is not adviced to do so).
 
 
 ## Symmetry
@@ -70,8 +70,8 @@ import CellAutomata.General as General
 import Dict exposing (Dict)
 
 
-{-| Every State needs a defined order.
-(e.g. a function that gives each state a unique identifer)
+{-| Every state needs a defined order.
+(a function that gives each state a unique identifer)
 
 For our ant example we define the following order:
 
@@ -153,7 +153,10 @@ type alias Neighborhood state =
     , northWest : state
     }
 
+{-| Transforms a neighborhood.
 
+It takes a function `a -> b` in order to transform a `Neighborhood a` to `Neighborhood b`
+-}
 mapNeighborhood : (a -> b) -> Neighborhood a -> Neighborhood b
 mapNeighborhood fun { north, northEast, east, southEast, south, southWest, west, northWest } =
     { north = north |> fun
@@ -167,7 +170,7 @@ mapNeighborhood fun { north, northEast, east, southEast, south, southWest, west,
     }
 
 
-{-| this template helps defining a Neighborhood.
+{-| This template helps defining a Neighborhood.
 
 For example, if we would want to only consider the north neighbor,
 we might specify it the following way
@@ -214,8 +217,9 @@ ruleSet =
 
 
 {-| The Automata type can be seen as a config type.
+
 Its stores all information to specify the behaviour of a cell automata.
-Sometimes more then one automata should act on to the same Grid.
+Sometimes more then one automata should act on to the same `Grid`.
 For this reason it is its own type.
 -}
 type alias Automata state =
@@ -258,7 +262,8 @@ this could be implemented the following way:
     ]
         |> automataWithoutSymmetry order
 
-This code would be simplified by using a custom symmetry
+This code is on purpose more complicated as it should be.
+If possible one should always use a custom symmetry.
 
 -}
 automataWithoutSymmetry : Order state -> List (Rule state) -> Automata state
@@ -286,9 +291,25 @@ The previous example can now be implemented the following way:
                 Left ->
                     Up
     in
-    [ { from = Just Up, neighbors = anyNeighborhood, to = Nothing }
-    , { from = Nothing, to = Just Up, neighbors = { anyNeighborhood | south = Exactly <| Just Up, southEast = Exactly <| Just Wall } }
-    , { from = Nothing, to = Just Right, neighbors = { anyNeighborhood | south = Exactly <| Just Wall, west = Exactly <| Just Up } }
+    [ { from = Just Up
+      , neighbors = anyNeighborhood
+      , to = Nothing
+      }
+    , { from = Nothing
+      , to = Just Up
+      , neighbors =
+            { anyNeighborhood
+            | south = Exactly <| Just Up
+            , southEast = Exactly <| Just Wall
+            }
+      }
+    , { from = Nothing
+      , to = Just Right
+      , neighbors =
+            { anyNeighborhood
+            | south = Exactly <| Just Wall
+            , west = Exactly <| Just Up }
+            }
     ]
         |> automata (rot90Symmetry rotState) order
 
@@ -358,9 +379,9 @@ subFuncRotate list =
 
 {-| Pattern may be horizontally mirrored
 
-The first argument is a function (state -> state) that states how the values of
+The first argument is a function `(state -> state)` that states how the values of
 the state can be mirrored (horizontally).
-Use the identity function if you dont see a need in specifing the first arguement.
+Use the `identity` function if you do not see a need in specifing the first arguement.
 
 As example, given the state
 
@@ -370,9 +391,9 @@ As example, given the state
         | Left
         | Right
 
-We can specify the symmetry the following way
+We can specify a symmetry the following way
 
-    rot90Symmetry
+    horMirrorSymmetry
         (\state ->
             case state of
                 Up ->
@@ -420,7 +441,7 @@ As example, given the state
 
 We can specify the symmetry the following way
 
-    rot90Symmetry
+    vertMirrorSymmetry
         (\state ->
             case state of
                 Left ->
@@ -474,7 +495,7 @@ As example, given the state
 
 We can specify the symmetry the following way
 
-    rot90Symmetry
+    rot45Symmetry
         (\state ->
             case state of
                 North ->
@@ -663,7 +684,13 @@ It has a wierd type, but thats because it is meant to be used with Dict.update:
             (\x g ->
                 List.range 0 10
                     |> List.foldl
-                        (\y -> Dict.update ( x, y ) (( x, y ) |> step automata grid))
+                        (\y ->
+                            Dict.update
+                                ( x, y )
+                                ( ( x, y )
+                                    |> step automata grid
+                                )
+                        )
                         g
             )
             grid
