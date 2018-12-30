@@ -1,6 +1,6 @@
 module CellAutomata exposing
     ( Order, Grid, Location
-    , RuleExpression(..), Neighborhood, anyNeigborhood, Rule
+    , RuleExpression(..), Neighborhood, anyNeighborhood, Rule
     , step, Automata, automataWithoutSymmetry
     , Symmetry, noSymmetry, horMirrorSymmetry, vertMirrorSymmetry, rot45Symmetry, rot90Symmetry
     , automata
@@ -18,12 +18,11 @@ As an example, lets try to simulate an ant that escapes any mase by always follo
 
 Our state will now be the following
 
-    type State =
-        Wall,
-        Up,
-        Down,
-        Left,
-        Right
+    type State = Wall
+        | Up
+        | Down
+        | Left
+        | Right
 
 
 # The Basics
@@ -36,7 +35,7 @@ Our state will now be the following
 
 ## Rule
 
-@docs RuleExpression, Neighborhood, anyNeigborhood, Rule
+@docs RuleExpression, Neighborhood, anyNeighborhood, Rule
 
 
 ## Automata Without Symmetry
@@ -180,8 +179,8 @@ we might specify it the following way
     }
 
 -}
-anyNeigborhood : Neighborhood (RuleExpression (Maybe state))
-anyNeigborhood =
+anyNeighborhood : Neighborhood (RuleExpression (Maybe state))
+anyNeighborhood =
     { north = Anything
     , northEast = Anything
     , east = Anything
@@ -290,6 +289,9 @@ The previous example can now be implemented the following way:
 
                 Left ->
                     Up
+
+                a ->
+                    a
     in
     [ { from = Just Up
       , neighbors = anyNeighborhood

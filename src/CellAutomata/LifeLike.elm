@@ -12,9 +12,9 @@ module CellAutomata.LifeLike exposing (
     rot45Symmetry,
     automataWithCustomSymmetry,
     automataWithoutSymmetry,
-    RuleExpression,
+    RuleExpression(..),
     Neighborhood,
-    anyNeigborhood,
+    anyNeighborhood,
     Rule,
     Grid,
     State(..),
@@ -52,7 +52,7 @@ For the remaining documentation we use a modified version of game of life,
 where only the four direct neighbors (North,South,East,West) are considered.  
 
 ## Rule
-@docs RuleExpression,Neighborhood,anyNeigborhood,Rule
+@docs RuleExpression,Neighborhood,anyNeighborhood,Rule
 
 ## Automata
 @docs automataWithoutSymmetry
@@ -150,8 +150,8 @@ we might specify it the following way
     , west : Exactly d
     }
 -}
-anyNeigborhood : Neighborhood (RuleExpression (Maybe State))
-anyNeigborhood =
+anyNeighborhood : Neighborhood (RuleExpression (Maybe State))
+anyNeighborhood =
     { north = Anything
     , northEast = Anything
     , east = Anything
@@ -571,10 +571,10 @@ The implementation would be the following list:
     let
         neighbors a b c d = 
             {anyNeighborhood
-            | north : Exactly a
-            , east : Exactly b
-            , south : Exactly c
-            , west : Exactly d
+            | north = Exactly a
+            , east = Exactly b
+            , south = Exactly c
+            , west = Exactly d
             }
     in
     [ {from = Just Alive
@@ -621,6 +621,15 @@ automataWithoutSymmetry = automataWithCustomSymmetry noSymmetry
 
 Going back to the old example, this can now be done the following way:
 
+    let
+        neighbors a b c d = 
+            {anyNeighborhood
+            | north = Exactly a
+            , east = Exactly b
+            , south = Exactly c
+            , west = Exactly d
+            }
+    in
     [ {from = Just Alive
       , to = Just Alive
       , neighbors = neighbors (Just Alive) Nothing Nothing Nothing
