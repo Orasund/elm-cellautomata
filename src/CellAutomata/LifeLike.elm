@@ -372,7 +372,7 @@ horMirrorSymmetry state neighborhood {from,neighbors} =
     &&
     (
         (compareLists directions)
-        || (compareList mirrored)
+        || (compareLists mirrored)
     )
 
 {-| Pattern may be vertically mirrored
@@ -393,7 +393,7 @@ vertMirrorSymmetry state neighborhood {from,neighbors} =
     &&
     (
         (compareLists directions)
-        || (compareList mirrored)
+        || (compareLists mirrored)
     )
 
 {-| Pattern may be rotated in any position.
@@ -509,7 +509,11 @@ Sometimes more then one automata should act on to the same Grid.
 For this reason it is its own type.
 -}
 type alias Automata
-    = General.Automata (Neighborhood (Maybe State)) (Neighborhood (RuleExpression (Maybe State))) Location State
+    = General.Automata
+        (Neighborhood (Maybe State))
+        (Neighborhood (RuleExpression (Maybe State)))
+        Location
+        State
 
 {-| The input is a list of rules.  
 As an example, lets look at the rules for conway's game of life:
@@ -618,13 +622,14 @@ Going back to the old example, this can now be done the following way:
 -}
 automataWithCustomSymmetry : Symmetry -> List Rule -> Automata
 automataWithCustomSymmetry symmetry listOfRules =
-  General.Automata { ruleSet =
-      listOfRules
-        |> General.ruleSet order
-  , symmetry = symmetry
-  , neighborhoodFunction = neighborhoodFunction
-  , order = order
-  }
+  General.Automata
+    { ruleSet =
+        listOfRules
+            |> General.ruleSet order
+    , symmetry = symmetry
+    , neighborhoodFunction = neighborhoodFunction
+    , order = order
+    }
 
 {-| This is the main function.  
 It has a wierd type, but thats because it is meant to be used with Dict.update:

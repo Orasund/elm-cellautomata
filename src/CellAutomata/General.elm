@@ -47,7 +47,7 @@ type Automata neighborhood ruleNeighborhood location state
   = Automata { ruleSet: RuleSet ruleNeighborhood (Maybe state)
   , symmetry : Symmetry neighborhood ruleNeighborhood (Maybe state)
   , neighborhoodFunction : NeighborhoodFunction location neighborhood state
-  , order: (Maybe state) -> Int
+  , order: Maybe state -> Int
   }
 
 find : (a -> Bool) -> List a -> Maybe a
