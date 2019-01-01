@@ -26,17 +26,16 @@ This module was created to give a smooth introduction to the main module,
 but also because for a lot of use cases this simpler version is already enough.
 
 **If you know of Conway's Game of Life and want to make something similiar,**  
-**this module is the right one for you**
+**this module is the right one for you.**
 
-In this module, a few assumptions about the automata where made:
-* The cells are organiced in a two dimensional grid.
-* Each cell can have on of two states: *Dead*(`Nothing`) or *Alive*(`Just Alive`)
+In this module, a few assumptions about the automata were made:
+* The cells are organized in a two dimensional grid.
+* Each cell can have one of two states: *Dead*(`Nothing`) or *Alive*(`Just Alive`)
 * Each cell has eight neighbors
-* A rule can only take the amount of alive neighbored cells into account. (Not the pattern)
+* A rule can only take the amount of alive neighbored cells into account. (Not the pattern itself)
 
-**Note:** This last assumption can be ignored by using
-`automataWithoutSymmetry`(the exact pattern must the matched) 
-or `automataWithCustomSymmetry`(for example mirrored or rotational symmetry).
+**Note:** This last assumption can be ignored by using `automataWithoutSymmetry`
+or `automataWithCustomSymmetry`. We will look at an example further down the document.
 
 # The Basics
 ## Basic Types
@@ -46,9 +45,9 @@ or `automataWithCustomSymmetry`(for example mirrored or rotational symmetry).
 @docs AliveNeighbors,step,Automata,automata
 
 # Rule Expressions and Symmetries
-Up until now, only the amound of living neighbors where important, but not their position.  
+Up until now, only the amount of living neighbors was important, but not their position.  
 
-For the remaining documentation we use a modified version of game of life,  
+For the remaining documentation we use a [modified version](https://orasund.github.io/elm-cellautomata/modGoL) of game of life,  
 where only the four direct neighbors (North,South,East,West) are considered.  
 
 ## Rule
@@ -67,10 +66,10 @@ where only the four direct neighbors (North,South,East,West) are considered.
 import Dict exposing (Dict)
 import CellAutomata.General as General
 
-{-| The State will specify all posible states a Cell can be in (besides a empty Cell)
+{-| The State will specify all posible states a cell can be in (besides a empty Cell)
 
 This means cells will be of type `Maybe State`.  
-This way its clear that, if not specified otherwise, a cell will be `Nothing`.  
+This way it should be clear that, the default value for a cell is `Nothing`.  
 In this module there is just one other state: `Just Alive`.  
 If you want to add more states, then you should go to the main module.
 -}
@@ -90,12 +89,12 @@ type alias Location =
     (Int,Int)
 
 
-{-| The grid is the *model* of this module.
+{-| The grid is the "model" of this module.
 
 You might want to write your own view function for it or else you can't see what the automata has done.
 
 In your head you should think of this as a grid, where some cells are filled in.  
-In fact, only the filled cells are stored in the Dict.  
+In fact, only the filled cells are stored in the `Dict`.  
 Filled cells have the value `Just Alive` while empty cells have the value `Nothing`.  
 This is why we represent the grid as a dictionary.
 -}
@@ -105,15 +104,15 @@ type alias Grid =
 {-| RuleExpressions give us a very flexible way of talking about neighbors.
 
 When writing a rule for the neighbors, they can now have one of the following values:  
-* **(Exactly <| Just Alive)** - its alive
-* **(Exactly <| Nothing)** - its dead
-* **Anything** - it may be dead or alive - we dont care.
+* `(Exactly <| Just Alive)` - its alive
+* `(Exactly <| Nothing)` - its dead
+* `Anything` - it may be dead or alive - we dont care.
 
 **Note:**
 If you would go back to counting the alive neighbors, the `Anything`-expression will
 act like an optional neighbor.  
-For example a rule that looks for 3 `Alive` and 2 `Anything`,  
-its will be successfull if it finds either 3,4 or 5 alive neighbors. 
+For example a rule that looks for 3 `Alive` and 2 `Anything`
+will be successfull if it finds either 3,4 or 5 alive neighbors. 
 -}
 type RuleExpression state
     = Exactly state
@@ -125,7 +124,7 @@ Instead of saying "one alive neighbor", we now need to explicitly specify where
 this neighbor is located.
 
 If some neighbor may have any value (that is most often the case),  
-its best to use the anyNeighborhood template and start from there.  
+its best to use the `anyNeighborhood` template and start from there.  
 -}
 type alias Neighborhood state =
     { north : state
@@ -288,7 +287,7 @@ type alias Rule
       ,to:Maybe State
       }
 
-{-| A symmetry is just a function that determines when a rule is sucessfully applied.
+{-| A symmetry is just a function that determines if a rule is sucessfully applied.
 If so, it returns the new state.
 During this documentation we have already encountered two different symmetries:  
 `fullSymmetry` and `noSymmetry`.
@@ -360,7 +359,7 @@ subFuncRotate list = case list of
     [] -> []
     a :: tail -> List.append tail [a]
 
-{-| Pattern may be horizontally mirrored
+{-| Pattern may be horizontally mirrored.
 -}
 horMirrorSymmetry : Symmetry
 horMirrorSymmetry state neighborhood {from,neighbors,to} =
@@ -386,7 +385,7 @@ horMirrorSymmetry state neighborhood {from,neighbors,to} =
     else
         Nothing
 
-{-| Pattern may be vertically mirrored
+{-| Pattern may be vertically mirrored.
 -}
 vertMirrorSymmetry : Symmetry
 vertMirrorSymmetry state neighborhood {from,neighbors,to} =
@@ -534,7 +533,7 @@ neighborhoodFunction ((x,y) as location) grid =
     , northWest = grid |> Dict.get (x - 1,y - 1)
     }
 
-{-| The Automata type can be seen as a config type.  
+{-| The `Automata` type can be seen as a config type.  
 Its stores all information to specify the behaviour of a cell automata.  
 Sometimes more then one automata should act on to the same Grid.  
 For this reason it is its own type.
@@ -547,7 +546,7 @@ type alias Automata
         State
 
 {-| The input is a list of rules.  
-As an example, lets look at the rules for conway's game of life:
+[As an example](https://orasund.github.io/elm-cellautomata/GameOfLife), lets look at the rules for conway's game of life:
 * Alive cells survive if they have 2 or 3 alive neighbors, else they die.
 * Dead cells turn alive if exactly 3 neighbors are alive.
 
@@ -570,9 +569,10 @@ Implemented, these rules look like this:
       , to = Just Alive
       }
     ]
+    |> automata
 
 The order of the rules are important: the automata will go through the list,  
-and use the first use it can apply.
+and use the first rule it can apply.
 -}
 automata : List {from:(Maybe State),neighbors:AliveNeighbors,to:(Maybe State)} -> Automata
 automata =
@@ -582,7 +582,7 @@ automata =
           )
       >> automataWithCustomSymmetry fullSymmetry
 
-{-| This function uses no symmetry, this means every possible combination must be
+{-| This function uses no symmetry. This means every possible combination must be
 specified.
 
     automataWithoutSymmetry =
@@ -592,7 +592,7 @@ specified.
 **Most often you want at least rotational or mirrored symmetry**  
 **This function is only included for demonstration purposes**
 
-For example, lets say we want to modify conway's game of life, such that
+[For example](https://orasund.github.io/elm-cellautomata/modGoL), lets say we want to modify conway's game of life, such that
 it only considers the four adjacent neighbors:
 * Alive cells survive if they have exactly 1 adjacent neighbors
 * Dead cells turn alive if exactly 1 neighbors are alive
@@ -688,7 +688,7 @@ automataWithCustomSymmetry symmetry listOfRules =
     }
 
 {-| This is the main function.  
-It has a wierd type, but thats because it is meant to be used with Dict.update:
+It has a wierd type, but thats because it is meant to be used with ``Dict.update`:
 
     List.range 0 12
     |> List.foldl

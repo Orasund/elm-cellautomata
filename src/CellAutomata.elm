@@ -7,14 +7,15 @@ module CellAutomata exposing
     , mapNeighborhood
     )
 
-{-| If you are new to this package, consider checking out CellAutomata.LifeLike first,
-as it is written as an introduction to this module.
+{-| If you are new to this package, consider checking out CellAutomata.LifeLike first.
+It is written as an introduction to this module.
 
-**If you want to create cellAutomatas with more then one state,**
-**but still operates on a 2D-Grid, than this package is the right one for you.**
+**If you want to create automatas with more then one state,**
+**but that still operates on a 2D-Grid, than this package is the right one for you.**
 
 First start by writing your own state type.
-As an example, lets try to simulate an ant that escapes any mase by always following the right wall.
+[As an example](https://orasund.github.io/elm-cellautomata/ant), lets try to simulate an ant that always follows the right wall.
+
 
 Our state will now be the following
 
@@ -45,14 +46,9 @@ Our state will now be the following
 
 # Symmetries
 
-Now that we specify our own state, it is no longer possible to write a
-`fullSymmetry`-function (and it is not adviced to do so).
-
-
 ## Symmetry
 
 @docs Symmetry, noSymmetry, horMirrorSymmetry, vertMirrorSymmetry, rot45Symmetry, rot90Symmetry
-
 
 ## Automata
 
@@ -70,7 +66,7 @@ import Dict exposing (Dict)
 
 
 {-| Every state needs a defined order.
-(a function that gives each state a unique identifer)
+(A function that gives each state a unique integer)
 
 For our ant example we define the following order:
 
@@ -99,8 +95,8 @@ type alias Order state =
     Maybe state -> Int
 
 
-{-| The location is the unique identifier for any cell.
-For our purpose we use `(x,y)`-coordinates.
+{-| The location is the unique identifier for any cell.  
+For our purpose we use `(x,y)` coordinates.
 
 **Note:** The south of `(0,0)` is `(0,y)` while the north is `(0,-y)`.
 
@@ -115,10 +111,9 @@ You might want to write your own view function for it
 or else you can't see what the automata has done.
 
 In your head you should think of this as a grid, where some cells are filled in.
-In fact, only the filled cells are stored in the Dict.
+In fact, only the filled cells are stored in the `Dict`.
 
 Cells have the type `Maybe state` where `state` should be a custom type.
-(See CellAutomata.LifeLike for a idea of how the state may be implemented.)
 
 -}
 type alias Grid state =
@@ -138,7 +133,7 @@ type RuleExpression state
 {-| The Neighborhood of a cell consists of the 8 surounding cells.
 
 If some neighbor may have any value (that is most often the case),
-its best to use the anyNeighborhood template and start from there.
+its best to use the `anyNeighborhood` template and start from there.
 
 -}
 type alias Neighborhood state =
@@ -169,7 +164,7 @@ mapNeighborhood fun { north, northEast, east, southEast, south, southWest, west,
     }
 
 
-{-| This template helps defining a Neighborhood.
+{-| This template helps defining a `Neighborhood`.
 
 For example, if we would want to only consider the north neighbor,
 we might specify it the following way
@@ -225,7 +220,7 @@ type alias Automata state =
     General.Automata (Neighborhood (Maybe state)) (Neighborhood (RuleExpression (Maybe state))) Location state
 
 
-{-| A symmetry is just a function that determines when a rule is sucessfully applied.
+{-| A symmetry is just a function that determines if a rule is sucessfully applied.
 If so, it returns the new state.
 -}
 type alias Symmetry state =
@@ -239,13 +234,12 @@ specified.
         automataWithCustomSymmetry noSymmetry
 
 **This function is not useful in practice.**
-**Most often you want at least rotational or mirrored symmetry**
-**This function is only included for demonstration purposes**
+**Most often you want at least rotational or mirrored symmetry.**
+**This function is only included for demonstration purposes.**
 
-Checkout CellAutomata.LifeLike for a more detailed discribtion.
+Checkout CellAutomata.LifeLike for a more detailed description.
 
-For our example with the ant, that escapes any mase by following the right wall,
-this could be implemented the following way:
+Our example with the ant, can now be implemented the following way:
 
     [ { from = Just Up, neighbors = anyNeighborhood, to = Nothing }
     , { from = Just Down, neighbors = anyNeighborhood, to = Nothing }
@@ -273,7 +267,7 @@ automataWithoutSymmetry =
 
 {-| With this function we can now add our own symmetry.
 
-The previous example can now be implemented the following way:
+The ant example can now be implemented the following way:
 
     let
         rotState : State -> State
@@ -329,9 +323,7 @@ The previous example can now be implemented the following way:
         ]
     )
         |> automata (rot90Symmetry rotState) order
-
-**Note:** for now the symmetry can not effect the original `.from` state.
-This will hopefully chance in the future.
+        
 -}
 automata : Symmetry state -> Order state -> List (Rule state) -> Automata state
 automata symmetry order listOfRules =
@@ -404,8 +396,7 @@ Use the `identity` function if you do not see a need in specifing the first argu
 
 As example, given the state
 
-    State =
-        Up
+    State = Up
         | Down
         | Left
         | Right
@@ -457,8 +448,7 @@ Use the identity function if you dont see a need in specifing the first arguemen
 
 As example, given the state
 
-    State =
-        Up
+    State = Up
         | Down
         | Left
         | Right
@@ -505,14 +495,13 @@ vertMirrorSymmetry vertMirrorState state neighborhood { from, neighbors,to } =
 
 {-| Pattern may be rotated in any position.
 
-The first argument is a function (state -> state) that states how the values of
+The first argument is a function `(state -> state)` that states how the values of
 the state can be rotated (clock-wise).
-Use the identity function if you dont see a need in specifing the first arguement.
+Use the `identity` function if you dont see a need in specifing the first arguement.
 
 As example, given the state
 
-    State =
-        North
+    State = North
         | NorthEast
         | East
         | SouthEast
@@ -623,14 +612,13 @@ rot45Symmetry rotateState state neighborhood { from, neighbors, to } =
 
 {-| Pattern may be rotated in 90,180 and 270 degree angles.
 
-The first argument is a function (state -> state) that states how the values of
+The first argument is a function `(state -> state)` that states how the values of
 the state can be rotated (clock-wise).
-Use the identity function if you dont see a need in specifing the first arguement.
+Use the `identity` function if you dont see a need in specifing the first arguement.
 
 As example, given the state
 
-    State =
-        Left
+    State = Left
         | Right
         | Up
         | Down
@@ -715,7 +703,7 @@ noSymmetry state neighborhood { from, neighbors,to } =
 
 
 {-| This is the main function.
-It has a wierd type, but thats because it is meant to be used with Dict.update:
+It has a wierd type, but thats because it is meant to be used with `Dict.update`:
 
     List.range 0 12
         |> List.foldl
