@@ -652,6 +652,7 @@ automataWithCustomSymmetry symmetry listOfRules =
         listOfRules
             |> General.ruleSet order
     , symmetry = symmetry
+    , stateSymmetry = identity
     , neighborhoodFunction = neighborhoodFunction
     , order = order
     }

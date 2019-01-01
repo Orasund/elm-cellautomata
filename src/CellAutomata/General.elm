@@ -38,7 +38,7 @@ type alias Rule neighborhood state
     = {from:state,neighbors:neighborhood,to:state}
 
 type alias Symmetry neighborhood ruleNeighborhood state
-    = state -> neighborhood -> Rule ruleNeighborhood state -> Bool
+    = state -> neighborhood -> Rule ruleNeighborhood state -> Maybe state
 
 type alias NeighborhoodFunction location neighborhood state
     = Comparable location -> Field (Comparable location) state -> neighborhood
@@ -77,7 +77,10 @@ step (Automata ({neighborhoodFunction,symmetry,order} as automata)) field=
         rSet
             |> Dict.get (order state)
             |> Maybe.withDefault []
-            |> find (symmetry state neighborhood)
-            |> Maybe.map .to
-            |> Maybe.withDefault state
-    
+            |> List.filterMap (symmetry state neighborhood)
+            |> (\list ->
+                    case list of
+                        a :: _ -> 
+                            a
+                        _ -> state
+                )

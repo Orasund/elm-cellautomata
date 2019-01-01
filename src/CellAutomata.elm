@@ -228,7 +228,7 @@ type alias Automata state =
 {-| A symmetry is just a function that determines when a rule is sucessfully applied.
 -}
 type alias Symmetry state =
-    Maybe state -> Neighborhood (Maybe state) -> Rule state -> Bool
+    Maybe state -> Neighborhood (Maybe state) -> Rule state -> Maybe (Maybe state)
 
 
 {-| This function uses no symmetry, this means every possible combination must be
@@ -297,6 +297,18 @@ The previous example can now be implemented the following way:
       , neighbors = anyNeighborhood
       , to = Nothing
       }
+    , { from = Just Left
+      , neighbors = anyNeighborhood
+      , to = Nothing
+      }
+    , { from = Just Down
+      , neighbors = anyNeighborhood
+      , to = Nothing
+      }
+    , { from = Just Right
+      , neighbors = anyNeighborhood
+      , to = Nothing
+      }
     , { from = Nothing
       , to = Just Up
       , neighbors =
@@ -315,6 +327,8 @@ The previous example can now be implemented the following way:
     ]
         |> automata (rot90Symmetry rotState) order
 
+**Note:** for now the symmetry can not effect the original `.from` state.
+This will hopefully chance in the future.
 -}
 automata : Symmetry state -> Order state -> List (Rule state) -> Automata state
 automata symmetry order listOfRules =
@@ -410,7 +424,7 @@ We can specify a symmetry the following way
 
 -}
 horMirrorSymmetry : (state -> state) -> Symmetry state
-horMirrorSymmetry horMirrorState state neighborhood { from, neighbors } =
+horMirrorSymmetry horMirrorState state neighborhood { from, neighbors, to } =
     let
         directions : List (Neighborhood a -> a)
         directions =
@@ -423,9 +437,14 @@ horMirrorSymmetry horMirrorState state neighborhood { from, neighbors } =
         compareLists neigh =
             subFuncCompareLists neighbors neigh directions
     in
-    ((state == from) && compareLists neighborhood directions)
-        || (((state |> Maybe.map horMirrorState) == from) && compareLists (neighborhood |> mapNeighborhood (Maybe.map horMirrorState)) mirrored)
-
+    if ((state == from) && compareLists neighborhood directions) then
+        Just to
+    else if
+        (((state |> Maybe.map horMirrorState) == from) && compareLists (neighborhood |> mapNeighborhood (Maybe.map horMirrorState)) mirrored)
+    then
+        Just (to |> Maybe.map horMirrorState)
+    else
+        Nothing
 
 {-| Pattern may be vertically mirrored
 
@@ -458,7 +477,7 @@ We can specify the symmetry the following way
 
 -}
 vertMirrorSymmetry : (state -> state) -> Symmetry state
-vertMirrorSymmetry vertMirrorState state neighborhood { from, neighbors } =
+vertMirrorSymmetry vertMirrorState state neighborhood { from, neighbors,to } =
     let
         directions : List (Neighborhood a -> a)
         directions =
@@ -471,10 +490,14 @@ vertMirrorSymmetry vertMirrorState state neighborhood { from, neighbors } =
         compareLists neigh =
             subFuncCompareLists neighbors neigh directions
     in
-    ((state == from) && compareLists neighborhood directions)
-        || (((state |> Maybe.map vertMirrorState) == from)
+    if ((state == from) && compareLists neighborhood directions) then
+        Just to
+    else if (((state |> Maybe.map vertMirrorState) == from)
                 && compareLists (neighborhood |> mapNeighborhood (Maybe.map vertMirrorState)) mirrored
-           )
+           ) then
+        Just (to |> Maybe.map vertMirrorState)
+    else
+        Nothing
 
 
 {-| Pattern may be rotated in any position.
@@ -527,7 +550,7 @@ We can specify the symmetry the following way
 
 -}
 rot45Symmetry : (state -> state) -> Symmetry state
-rot45Symmetry rotateState state neighborhood { from, neighbors } =
+rot45Symmetry rotateState state neighborhood { from, neighbors, to } =
     let
         directions : List (Neighborhood a -> a)
         directions =
@@ -582,14 +605,24 @@ rot45Symmetry rotateState state neighborhood { from, neighbors } =
         compareLists neigh =
             subFuncCompareLists neighbors neigh directions
     in
-    ((state == from) && compareLists neighborhood directions)
-        || ((state1 == from) && compareLists neighbors1 rot1)
-        || ((state2 == from) && compareLists neighbors2 rot2)
-        || ((state3 == from) && compareLists neighbors3 rot3)
-        || ((state4 == from) && compareLists neighbors4 rot4)
-        || ((state5 == from) && compareLists neighbors5 rot5)
-        || ((state6 == from) && compareLists neighbors6 rot6)
-        || ((state7 == from) && compareLists neighbors7 rot7)
+    if ((state == from) && compareLists neighborhood directions) then
+        Just to
+    else if ((state1 == from) && compareLists neighbors1 rot1) then
+        Just (to |> Maybe.map (rotateState >> rotateState >> rotateState >> rotateState >> rotateState >> rotateState >> rotateState))
+    else if ((state2 == from) && compareLists neighbors2 rot2) then
+        Just (to |> Maybe.map (rotateState >> rotateState >> rotateState >> rotateState >> rotateState >> rotateState))
+    else if ((state3 == from) && compareLists neighbors3 rot3) then
+        Just (to |> Maybe.map (rotateState >> rotateState >> rotateState >> rotateState >> rotateState))
+    else if ((state4 == from) && compareLists neighbors4 rot4) then
+        Just (to |> Maybe.map (rotateState >> rotateState >> rotateState >> rotateState))
+    else if ((state5 == from) && compareLists neighbors5 rot5) then
+        Just (to |> Maybe.map (rotateState >> rotateState >> rotateState))
+    else if ((state6 == from) && compareLists neighbors6 rot6) then
+        Just (to |> Maybe.map (rotateState >> rotateState)) 
+    else if ((state7 == from) && compareLists neighbors7 rot7) then
+        Just (to |> Maybe.map rotateState) 
+    else
+        Nothing
 
 
 {-| Pattern may be rotated in 90,180 and 270 degree angles.
@@ -626,7 +659,7 @@ We can specify the symmetry the following way
 
 -}
 rot90Symmetry : (state -> state) -> Symmetry state
-rot90Symmetry rotateState state neighborhood { from, neighbors } =
+rot90Symmetry rotateState state neighborhood { from, neighbors,to } =
     let
         directions : List (Neighborhood a -> a)
         directions =
@@ -657,16 +690,22 @@ rot90Symmetry rotateState state neighborhood { from, neighbors } =
         compareLists neigh =
             subFuncCompareLists neighbors neigh directions
     in
-    ((state == from) && compareLists neighborhood directions)
-        || ((state1 == from) && compareLists neighbors1 rot1)
-        || ((state2 == from) && compareLists neighbors2 rot2)
-        || ((state3 == from) && compareLists neighbors3 rot3)
+    if ((state == from) && compareLists neighborhood directions) then
+        Just to
+    else if ((state1 == from) && compareLists neighbors1 rot1) then
+        Just (to |> Maybe.map (rotateState >> rotateState >> rotateState))
+    else if ((state2 == from) && compareLists neighbors2 rot2) then
+        Just (to |> Maybe.map (rotateState >> rotateState))
+    else if ((state3 == from) && compareLists neighbors3 rot3) then
+        Just (to |> Maybe.map rotateState)
+    else
+        Nothing
 
 
 {-| Every possible way the neighbors might be arranged needs its own rule.
 -}
 noSymmetry : Symmetry state
-noSymmetry state neighborhood { from, neighbors } =
+noSymmetry state neighborhood { from, neighbors,to } =
     let
         directions : List (Neighborhood a -> a)
         directions =
@@ -675,7 +714,11 @@ noSymmetry state neighborhood { from, neighbors } =
         compareLists =
             subFuncCompareLists neighbors neighborhood directions
     in
-    (state == from) && compareLists directions
+    if (state == from) && compareLists directions then
+        Just to
+    else
+        Nothing
+
 
 
 {-| This is the main function.

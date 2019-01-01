@@ -44,21 +44,33 @@ automata =
         rotState state =
             case state of
                 Up ->
-                    Right
-
-                Right ->
-                    Down
-
-                Down ->
                     Left
 
-                Left ->
+                Right ->
                     Up
+
+                Down ->
+                    Right
+
+                Left ->
+                    Down
                 
                 a ->
                     a
     in
     [ { from = Just Up
+      , neighbors = anyNeighborhood
+      , to = Nothing
+      }
+    , { from = Just Left
+      , neighbors = anyNeighborhood
+      , to = Nothing
+      }
+    , { from = Just Down
+      , neighbors = anyNeighborhood
+      , to = Nothing
+      }
+    , { from = Just Right
       , neighbors = anyNeighborhood
       , to = Nothing
       }
