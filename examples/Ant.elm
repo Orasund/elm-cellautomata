@@ -16,6 +16,8 @@ init =
     Dict.empty
         |> Dict.insert (0,1) Up
         |> Dict.insert (1,1) Wall
+        |> Dict.insert (1,2) Wall
+        |> Dict.insert (2,2) Wall
 
 order maybeState =
   case maybeState of
@@ -58,38 +60,40 @@ automata =
                 a ->
                     a
     in
-    [ { from = Just Up
-      , neighbors = anyNeighborhood
-      , to = Nothing
-      }
-    , { from = Just Left
-      , neighbors = anyNeighborhood
-      , to = Nothing
-      }
-    , { from = Just Down
-      , neighbors = anyNeighborhood
-      , to = Nothing
-      }
-    , { from = Just Right
-      , neighbors = anyNeighborhood
-      , to = Nothing
-      }
-    , { from = Nothing
-      , to = Just Up
-      , neighbors =
-            { anyNeighborhood
-            | south = Exactly <| Just Up
-            , southEast = Exactly <| Just Wall
-            }
-      }
-    , { from = Nothing
-      , to = Just Right
-      , neighbors =
-            { anyNeighborhood
-            | south = Exactly <| Just Wall
-            , west = Exactly <| Just Up }
-            }
-    ]
+    ( List.concat
+        [   [Up,Left,Right,Down]
+            |> List.map
+                (\dir ->
+                    { from = Just dir
+                    , neighbors = anyNeighborhood
+                    , to = Nothing
+                    }
+                )
+        ,   [   { from = Nothing
+                , to = Just Up
+                , neighbors =
+                        { anyNeighborhood
+                        | south = Exactly <| Just Up
+                        , southEast = Exactly <| Just Wall
+                        }
+                }
+            ,   { from = Nothing
+                , to = Just Right
+                , neighbors =
+                    { anyNeighborhood
+                    | south = Exactly <| Just Wall
+                    , west = Exactly <| Just Up }
+                    }
+            ,   { from = Nothing
+                , to = Just Right
+                , neighbors =
+                    { anyNeighborhood
+                    | southWest = Exactly <| Just Wall
+                    , west = Exactly <| Just Down }
+                    }
+            ]
+        ]
+    )
         |> Automata.automata (rot90Symmetry rotState) order
 
 main =

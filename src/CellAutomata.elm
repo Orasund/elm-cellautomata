@@ -226,6 +226,7 @@ type alias Automata state =
 
 
 {-| A symmetry is just a function that determines when a rule is sucessfully applied.
+If so, it returns the new state.
 -}
 type alias Symmetry state =
     Maybe state -> Neighborhood (Maybe state) -> Rule state -> Maybe (Maybe state)
@@ -293,38 +294,40 @@ The previous example can now be implemented the following way:
                 a ->
                     a
     in
-    [ { from = Just Up
-      , neighbors = anyNeighborhood
-      , to = Nothing
-      }
-    , { from = Just Left
-      , neighbors = anyNeighborhood
-      , to = Nothing
-      }
-    , { from = Just Down
-      , neighbors = anyNeighborhood
-      , to = Nothing
-      }
-    , { from = Just Right
-      , neighbors = anyNeighborhood
-      , to = Nothing
-      }
-    , { from = Nothing
-      , to = Just Up
-      , neighbors =
-            { anyNeighborhood
-            | south = Exactly <| Just Up
-            , southEast = Exactly <| Just Wall
-            }
-      }
-    , { from = Nothing
-      , to = Just Right
-      , neighbors =
-            { anyNeighborhood
-            | south = Exactly <| Just Wall
-            , west = Exactly <| Just Up }
-            }
-    ]
+    ( List.concat
+        [   [Up,Left,Right,Down]
+            |> List.map
+                (\dir ->
+                    { from = Just dir
+                    , neighbors = anyNeighborhood
+                    , to = Nothing
+                    }
+                )
+        ,   [   { from = Nothing
+                , to = Just Up
+                , neighbors =
+                        { anyNeighborhood
+                        | south = Exactly <| Just Up
+                        , southEast = Exactly <| Just Wall
+                        }
+                }
+            ,   { from = Nothing
+                , to = Just Right
+                , neighbors =
+                    { anyNeighborhood
+                    | south = Exactly <| Just Wall
+                    , west = Exactly <| Just Up }
+                    }
+            ,   { from = Nothing
+                , to = Just Right
+                , neighbors =
+                    { anyNeighborhood
+                    | southWest = Exactly <| Just Wall
+                    , west = Exactly <| Just Down }
+                    }
+            ]
+        ]
+    )
         |> automata (rot90Symmetry rotState) order
 
 **Note:** for now the symmetry can not effect the original `.from` state.
@@ -440,7 +443,7 @@ horMirrorSymmetry horMirrorState state neighborhood { from, neighbors, to } =
     if ((state == from) && compareLists neighborhood directions) then
         Just to
     else if
-        (((state |> Maybe.map horMirrorState) == from) && compareLists (neighborhood |> mapNeighborhood (Maybe.map horMirrorState)) mirrored)
+        ((state == from) && compareLists (neighborhood |> mapNeighborhood (Maybe.map horMirrorState)) mirrored)
     then
         Just (to |> Maybe.map horMirrorState)
     else
@@ -492,7 +495,7 @@ vertMirrorSymmetry vertMirrorState state neighborhood { from, neighbors,to } =
     in
     if ((state == from) && compareLists neighborhood directions) then
         Just to
-    else if (((state |> Maybe.map vertMirrorState) == from)
+    else if ((state == from)
                 && compareLists (neighborhood |> mapNeighborhood (Maybe.map vertMirrorState)) mirrored
            ) then
         Just (to |> Maybe.map vertMirrorState)
@@ -560,46 +563,39 @@ rot45Symmetry rotateState state neighborhood { from, neighbors, to } =
         rot =
             subFuncRotate
 
-        ( rot1, neighbors1, state1 ) =
+        ( rot1, neighbors1) =
             ( directions |> rot
             , neighborhood |> mapNeighborhood (Maybe.map rotateState)
-            , state |> Maybe.map rotateState
             )
 
-        ( rot2, neighbors2, state2 ) =
+        ( rot2, neighbors2) =
             ( rot1 |> rot
             , neighbors1 |> mapNeighborhood (Maybe.map rotateState)
-            , state1 |> Maybe.map rotateState
             )
 
-        ( rot3, neighbors3, state3 ) =
+        ( rot3, neighbors3) =
             ( rot2 |> rot
             , neighbors2 |> mapNeighborhood (Maybe.map rotateState)
-            , state2 |> Maybe.map rotateState
             )
 
-        ( rot4, neighbors4, state4 ) =
+        ( rot4, neighbors4) =
             ( rot3 |> rot
             , neighbors3 |> mapNeighborhood (Maybe.map rotateState)
-            , state3 |> Maybe.map rotateState
             )
 
-        ( rot5, neighbors5, state5 ) =
+        ( rot5, neighbors5) =
             ( rot4 |> rot
             , neighbors4 |> mapNeighborhood (Maybe.map rotateState)
-            , state4 |> Maybe.map rotateState
             )
 
-        ( rot6, neighbors6, state6 ) =
+        ( rot6, neighbors6) =
             ( rot5 |> rot
             , neighbors5 |> mapNeighborhood (Maybe.map rotateState)
-            , state5 |> Maybe.map rotateState
             )
 
-        ( rot7, neighbors7, state7 ) =
+        ( rot7, neighbors7) =
             ( rot6 |> rot
             , neighbors6 |> mapNeighborhood (Maybe.map rotateState)
-            , state6 |> Maybe.map rotateState
             )
 
         compareLists neigh =
@@ -607,19 +603,19 @@ rot45Symmetry rotateState state neighborhood { from, neighbors, to } =
     in
     if ((state == from) && compareLists neighborhood directions) then
         Just to
-    else if ((state1 == from) && compareLists neighbors1 rot1) then
+    else if ((state == from) && compareLists neighbors1 rot1) then
         Just (to |> Maybe.map (rotateState >> rotateState >> rotateState >> rotateState >> rotateState >> rotateState >> rotateState))
-    else if ((state2 == from) && compareLists neighbors2 rot2) then
+    else if ((state == from) && compareLists neighbors2 rot2) then
         Just (to |> Maybe.map (rotateState >> rotateState >> rotateState >> rotateState >> rotateState >> rotateState))
-    else if ((state3 == from) && compareLists neighbors3 rot3) then
+    else if ((state == from) && compareLists neighbors3 rot3) then
         Just (to |> Maybe.map (rotateState >> rotateState >> rotateState >> rotateState >> rotateState))
-    else if ((state4 == from) && compareLists neighbors4 rot4) then
+    else if ((state == from) && compareLists neighbors4 rot4) then
         Just (to |> Maybe.map (rotateState >> rotateState >> rotateState >> rotateState))
-    else if ((state5 == from) && compareLists neighbors5 rot5) then
+    else if ((state == from) && compareLists neighbors5 rot5) then
         Just (to |> Maybe.map (rotateState >> rotateState >> rotateState))
-    else if ((state6 == from) && compareLists neighbors6 rot6) then
+    else if ((state == from) && compareLists neighbors6 rot6) then
         Just (to |> Maybe.map (rotateState >> rotateState)) 
-    else if ((state7 == from) && compareLists neighbors7 rot7) then
+    else if ((state == from) && compareLists neighbors7 rot7) then
         Just (to |> Maybe.map rotateState) 
     else
         Nothing
@@ -669,22 +665,19 @@ rot90Symmetry rotateState state neighborhood { from, neighbors,to } =
         rot =
             subFuncRotate >> subFuncRotate
 
-        ( rot1, neighbors1, state1 ) =
+        ( rot1, neighbors1) =
             ( directions |> rot
             , neighborhood |> mapNeighborhood (Maybe.map rotateState)
-            , state |> Maybe.map rotateState
             )
 
-        ( rot2, neighbors2, state2 ) =
+        ( rot2, neighbors2) =
             ( rot1 |> rot
             , neighbors1 |> mapNeighborhood (Maybe.map rotateState)
-            , state1 |> Maybe.map rotateState
             )
 
-        ( rot3, neighbors3, state3 ) =
+        ( rot3, neighbors3) =
             ( rot2 |> rot
             , neighbors2 |> mapNeighborhood (Maybe.map rotateState)
-            , state2 |> Maybe.map rotateState
             )
 
         compareLists neigh =
@@ -692,11 +685,11 @@ rot90Symmetry rotateState state neighborhood { from, neighbors,to } =
     in
     if ((state == from) && compareLists neighborhood directions) then
         Just to
-    else if ((state1 == from) && compareLists neighbors1 rot1) then
+    else if ((state == from) && compareLists neighbors1 rot1) then
         Just (to |> Maybe.map (rotateState >> rotateState >> rotateState))
-    else if ((state2 == from) && compareLists neighbors2 rot2) then
+    else if ((state == from) && compareLists neighbors2 rot2) then
         Just (to |> Maybe.map (rotateState >> rotateState))
-    else if ((state3 == from) && compareLists neighbors3 rot3) then
+    else if ((state == from) && compareLists neighbors3 rot3) then
         Just (to |> Maybe.map rotateState)
     else
         Nothing

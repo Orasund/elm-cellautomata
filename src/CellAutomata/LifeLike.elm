@@ -288,17 +288,18 @@ type alias Rule
       ,to:Maybe State
       }
 
-{-| A symmetry is just a function that determines when a rule is sucessfully applied.  
+{-| A symmetry is just a function that determines when a rule is sucessfully applied.
+If so, it returns the new state.
 During this documentation we have already encountered two different symmetries:  
 `fullSymmetry` and `noSymmetry`.
 -}
 type alias Symmetry
-    = (Maybe State) -> Neighborhood (Maybe State) -> Rule -> Bool
+    = (Maybe State) -> Neighborhood (Maybe State) -> Rule -> Maybe (Maybe State)
 
 {-| The position of the neighbors is not important, only the amount.
 -}
 fullSymmetry : Symmetry
-fullSymmetry state neighborhood {from,neighbors} =
+fullSymmetry state neighborhood {from,neighbors,to} =
     let
       (ruleSum,ruleRem) = 
         [ neighbors.north,neighbors.northEast,neighbors.east,neighbors.southEast
@@ -324,10 +325,15 @@ fullSymmetry state neighborhood {from,neighbors} =
           )
           0
     in
-    (state == from)
-    && 
-    (sum == ruleSum || (sum > ruleSum && sum <= ruleSum+ruleRem)
-    )
+    if
+        (state == from)
+        && 
+        (sum == ruleSum || (sum > ruleSum && sum <= ruleSum+ruleRem)
+        )
+    then
+        Just to
+    else
+        Nothing
 
 subFuncCompareLists :
     Neighborhood (RuleExpression (Maybe State))
@@ -357,7 +363,7 @@ subFuncRotate list = case list of
 {-| Pattern may be horizontally mirrored
 -}
 horMirrorSymmetry : Symmetry
-horMirrorSymmetry state neighborhood {from,neighbors} =
+horMirrorSymmetry state neighborhood {from,neighbors,to} =
     let
         directions : List (Neighborhood a -> a)
         directions = [.north,.northEast,.east,.southEast,.south,.southWest,.west,.northWest]
@@ -368,17 +374,22 @@ horMirrorSymmetry state neighborhood {from,neighbors} =
         compareLists = 
             subFuncCompareLists neighbors neighborhood directions
     in
-    (state == from)
-    &&
-    (
-        (compareLists directions)
-        || (compareLists mirrored)
-    )
+    if
+        (state == from)
+        &&
+        (
+            (compareLists directions)
+            || (compareLists mirrored)
+        )
+    then
+        Just to
+    else
+        Nothing
 
 {-| Pattern may be vertically mirrored
 -}
 vertMirrorSymmetry : Symmetry
-vertMirrorSymmetry state neighborhood {from,neighbors} =
+vertMirrorSymmetry state neighborhood {from,neighbors,to} =
     let
         directions : List (Neighborhood a -> a)
         directions = [.north,.northEast,.east,.southEast,.south,.southWest,.west,.northWest]
@@ -389,17 +400,22 @@ vertMirrorSymmetry state neighborhood {from,neighbors} =
         compareLists = 
             subFuncCompareLists neighbors neighborhood directions
     in
-    (state == from)
-    &&
-    (
-        (compareLists directions)
-        || (compareLists mirrored)
-    )
+    if
+        (state == from)
+        &&
+        (
+            (compareLists directions)
+            || (compareLists mirrored)
+        )
+    then
+        Just to
+    else
+        Nothing
 
 {-| Pattern may be rotated in any position.
 -}
 rot45Symmetry : Symmetry
-rot45Symmetry state neighborhood {from,neighbors} =
+rot45Symmetry state neighborhood {from,neighbors,to} =
     let
         directions : List (Neighborhood a -> a)
         directions = [.north,.northEast,.east,.southEast,.south,.southWest,.west,.northWest]
@@ -431,22 +447,27 @@ rot45Symmetry state neighborhood {from,neighbors} =
         compareLists = 
             subFuncCompareLists neighbors neighborhood directions
     in
-    (state == from)
-    && 
-    (   (compareLists directions)
-        || (compareLists rot1)
-        || (compareLists rot2)
-        || (compareLists rot3)
-        || (compareLists rot4)
-        || (compareLists rot5)
-        || (compareLists rot6)
-        || (compareLists rot7)
-    )
+    if
+        (state == from)
+        && 
+        (   (compareLists directions)
+            || (compareLists rot1)
+            || (compareLists rot2)
+            || (compareLists rot3)
+            || (compareLists rot4)
+            || (compareLists rot5)
+            || (compareLists rot6)
+            || (compareLists rot7)
+        )
+    then
+        Just to
+    else
+        Nothing
 
 {-| Pattern may be rotated in 90,180 and 270 degree angles.
 -}
 rot90Symmetry : Symmetry
-rot90Symmetry state neighborhood {from,neighbors} =
+rot90Symmetry state neighborhood {from,neighbors,to} =
     let
         directions : List (Neighborhood a -> a)
         directions = [.north,.northEast,.east,.southEast,.south,.southWest,.west,.northWest]
@@ -466,18 +487,23 @@ rot90Symmetry state neighborhood {from,neighbors} =
         compareLists = 
             subFuncCompareLists neighbors neighborhood directions
     in
-    (state == from)
-    && 
-    (   (compareLists directions)
-        || (compareLists rot1)
-        || (compareLists rot2)
-        || (compareLists rot3)
-    )
+    if
+        (state == from)
+        && 
+        (   (compareLists directions)
+            || (compareLists rot1)
+            || (compareLists rot2)
+            || (compareLists rot3)
+        )
+    then
+        Just to
+    else
+        Nothing
 
 {-| Every possible way the neighbors might be arranged needs its own rule.
 -}
 noSymmetry : Symmetry
-noSymmetry state neighborhood {from,neighbors} =
+noSymmetry state neighborhood {from,neighbors,to} =
     let
         directions : List (Neighborhood a -> a)
         directions = [.north,.northEast,.east,.southEast,.south,.southWest,.west,.northWest]
@@ -485,7 +511,12 @@ noSymmetry state neighborhood {from,neighbors} =
         compareLists = 
             subFuncCompareLists neighbors neighborhood directions
     in
-    (state == from) && (compareLists directions)
+    if
+        (state == from) && (compareLists directions)
+    then
+        Just to
+    else
+        Nothing
 
 
 type alias NeighborhoodFunction
@@ -652,7 +683,6 @@ automataWithCustomSymmetry symmetry listOfRules =
         listOfRules
             |> General.ruleSet order
     , symmetry = symmetry
-    , stateSymmetry = identity
     , neighborhoodFunction = neighborhoodFunction
     , order = order
     }
