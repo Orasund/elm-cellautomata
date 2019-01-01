@@ -1,14 +1,14 @@
 # Elm-CellAutomata
 Elm-CellAutomata is a packages that lets you write your own celluar automatas.
 
-**to get started, head over to CellAutomata.LifeLike**
+**To get started, head over to CellAutomata.LifeLike**
 
 If you never heard of a celuar automata (or Conways's Game of Life),  
 checkout this neat little [simulator](https://ncase.me/simulating/model/). This should give you an idea what this package is about.
 
 When to use it:
-* to generate dynamic levels in your game.
-* for generative art.
+* To generate dynamic levels in your game.
+* For generative art.
 
 When not to use it:
 * A.I. behaviour. It is possible, but you will most likely get very frustrated
@@ -31,6 +31,7 @@ I could not find any package that had something in that direction,
 so i created my own.
 
 ## Upcoming features
+* The `RuleExpression` is missing a `Either (List state)` case, this will be included in version 2.0
 * More modules for different types of fields: **3D Grid**, **triangulations** and **graphs**
 * A adaption of [Nicky Case's emoji simulator](https://ncase.me/simulating/model/).
 In particular it should be able to generate functional elm code.

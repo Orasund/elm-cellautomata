@@ -1,9 +1,9 @@
 {
     "type": "package",
     "name": "Orasund/elm-cellautomata",
-    "summary": "Graphic engine for turn based pixel games.",
+    "summary": "A packages that lets you write your own celluar automatas.",
     "license": "BSD-3-Clause",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "exposed-modules": [
         "CellAutomata.LifeLike",
         "CellAutomata"
