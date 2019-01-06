@@ -1,4 +1,4 @@
-module CellAutomata.General exposing (Rule,step,ruleSet,Field,RuleSet(..),RuleExpression(..),Automata(..),Symmetry, NeighborhoodFunction)
+module CellAutomata.General exposing (Automata(..), Field, NeighborhoodFunction, Rule, RuleExpression(..), RuleSet(..), Symmetry, ruleSet, step)
 
 import Dict exposing (Dict)
 
@@ -15,64 +15,65 @@ type RuleSet neighborhood state
     = RuleSet (Dict Int (List (Rule neighborhood state)))
 
 
-ruleSet : ((Maybe state) -> Int) -> List (Rule neighborhood (Maybe state)) -> RuleSet neighborhood (Maybe state)
-ruleSet order = List.foldr
-    (\({neighbors,from,to} as r) dict ->
-        dict
-        |> Dict.update
-            (from |> order)
-            (\maybeList ->
-                case maybeList of
-                    Nothing -> Just [r]
-                    Just list -> Just (r :: list)
-            )
-    )
-    Dict.empty
-    >> RuleSet
+ruleSet : (Maybe state -> Int) -> List (Rule neighborhood (Maybe state)) -> RuleSet neighborhood (Maybe state)
+ruleSet order =
+    List.foldr
+        (\({ from } as r) dict ->
+            dict
+                |> Dict.update
+                    (from |> order)
+                    (\maybeList ->
+                        case maybeList of
+                            Nothing ->
+                                Just [ r ]
+
+                            Just list ->
+                                Just (r :: list)
+                    )
+        )
+        Dict.empty
+        >> RuleSet
+
 
 type RuleExpression state
     = Exactly state
     | Anything
 
-type alias Rule neighborhood state
-    = {from:state,neighbors:neighborhood,to:state}
 
-type alias Symmetry neighborhood ruleNeighborhood state
-    = state -> neighborhood -> Rule ruleNeighborhood state -> Maybe state
+type alias Rule neighborhood state =
+    { from : state
+    , neighbors : neighborhood
+    , to : state
+    }
 
-type alias NeighborhoodFunction location neighborhood state
-    = Comparable location -> Field (Comparable location) state -> neighborhood
+
+type alias Symmetry neighborhood ruleNeighborhood state =
+    state -> neighborhood -> Rule ruleNeighborhood state -> Maybe state
+
+
+type alias NeighborhoodFunction location neighborhood state =
+    Comparable location -> Field (Comparable location) state -> neighborhood
+
 
 type Automata neighborhood ruleNeighborhood location state
-  = Automata { ruleSet: RuleSet ruleNeighborhood (Maybe state)
-  , symmetry : Symmetry neighborhood ruleNeighborhood (Maybe state)
-  , neighborhoodFunction : NeighborhoodFunction location neighborhood state
-  , order: Maybe state -> Int
-  }
-
-find : (a -> Bool) -> List a -> Maybe a
-find predicate list =
-    case list of
-        [] ->
-            Nothing
-
-        first :: rest ->
-            if predicate first then
-                Just first
-
-            else
-                find predicate rest
+    = Automata
+        { ruleSet : RuleSet ruleNeighborhood (Maybe state)
+        , symmetry : Symmetry neighborhood ruleNeighborhood (Maybe state)
+        , neighborhoodFunction : NeighborhoodFunction location neighborhood state
+        , order : Maybe state -> Int
+        }
 
 
-step : Automata neighborhood ruleNeighborhood location state -> Field location state -> (location-> (Maybe state) -> Maybe state)
-step (Automata ({neighborhoodFunction,symmetry,order} as automata)) field=
+step : Automata neighborhood ruleNeighborhood location state -> Field location state -> (location -> Maybe state -> Maybe state)
+step (Automata ({ neighborhoodFunction, symmetry, order } as automata)) field =
     \location state ->
         let
             neighborhood : neighborhood
             neighborhood =
                 field |> neighborhoodFunction location
-            
-            (RuleSet rSet) = automata.ruleSet
+
+            (RuleSet rSet) =
+                automata.ruleSet
         in
         rSet
             |> Dict.get (order state)
@@ -80,7 +81,9 @@ step (Automata ({neighborhoodFunction,symmetry,order} as automata)) field=
             |> List.filterMap (symmetry state neighborhood)
             |> (\list ->
                     case list of
-                        a :: _ -> 
+                        a :: _ ->
                             a
-                        _ -> state
-                )
+
+                        _ ->
+                            state
+               )
