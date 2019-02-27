@@ -6979,6 +6979,7 @@ var author$project$Main$updateState = F2(
 		var state = _n0.a;
 		var board = state.board;
 		var deck = state.deck;
+		var score = state.score;
 		var seed = _n0.b;
 		var defaultCase = _Utils_Tuple2(
 			elm$core$Maybe$Just(
@@ -7034,7 +7035,8 @@ var author$project$Main$updateState = F2(
 										Orasund$pixelengine$Grid$Bordered$map,
 										author$project$LittleWorldPuzzler$Automata$step(
 											Orasund$pixelengine$Grid$Bordered$toDict(board)),
-										board)
+										board),
+									score: score + 1
 								}),
 							seed)),
 					elm$core$Platform$Cmd$none);
