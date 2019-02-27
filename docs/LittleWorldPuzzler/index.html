@@ -12381,8 +12381,8 @@ var author$project$LittleWorldPuzzler$View$Board$viewCell = F2(
 	function (msg, maybeCellType) {
 		return A2(
 			mdgriffith$elm_ui$Element$el,
-			(_Utils_eq(maybeCellType, elm$core$Maybe$Nothing) ? elm$core$Basics$identity : elm$core$List$cons(
-				mdgriffith$elm_ui$Element$Events$onClick(msg)))(
+			(_Utils_eq(maybeCellType, elm$core$Maybe$Nothing) ? elm$core$List$cons(
+				mdgriffith$elm_ui$Element$Events$onClick(msg)) : elm$core$Basics$identity)(
 				_List_fromArray(
 					[
 						mdgriffith$elm_ui$Element$Font$size(100),
