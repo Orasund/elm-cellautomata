@@ -1,5 +1,5 @@
 module CellAutomata exposing
-    ( Order, Grid, Location
+    ( Order, Grid, Position
     , RuleExpression(..), Neighborhood, anyNeighborhood, Rule
     , step, Automata, automataWithoutSymmetry
     , Symmetry, noSymmetry, horMirrorSymmetry, vertMirrorSymmetry, rot45Symmetry, rot90Symmetry
@@ -18,7 +18,8 @@ First start by writing your own state type.
 
 Our state will now be the following
 
-    type State = Wall
+    type State
+        = Wall
         | Up
         | Down
         | Left
@@ -30,7 +31,7 @@ Our state will now be the following
 
 ## Types
 
-@docs Order, Grid, Location
+@docs Order, Grid, Position
 
 
 ## Rule
@@ -67,7 +68,7 @@ import Dict exposing (Dict)
 
 
 {-| Every state needs a defined order.
-(A function that gives each state a unique integer)
+(A function that gives each state a unique identifier)
 
 For our ant example we define the following order:
 
@@ -92,17 +93,17 @@ For our ant example we define the following order:
                 5
 
 -}
-type alias Order state =
-    Maybe state -> Int
+type alias Order state comparable =
+    Maybe state -> comparable
 
 
-{-| The location is the unique identifier for any cell.
+{-| The position is the unique identifier for any cell.
 For our purpose we use `(x,y)` coordinates.
 
 **Note:** The south of `(0,0)` is `(0,y)` while the north is `(0,-y)`.
 
 -}
-type alias Location =
+type alias Position =
     ( Int, Int )
 
 
@@ -118,7 +119,7 @@ Cells have the type `Maybe state` where `state` should be a custom type.
 
 -}
 type alias Grid state =
-    Dict Location state
+    Dict Position state
 
 
 {-| RuleExpressions give us a very flexible way of talking about neighbors.
@@ -192,9 +193,9 @@ anyNeighborhood =
 
 {-| A rule consist of the following elements:
 
-  - **from** - the state of the cell
-  - **neighbors** - the nessesary pattern of the neighbors
-  - **to** - the state, the cell will transition in, if the rule applies
+  - **from** - The state of the cell
+  - **neighbors** - The nessesary pattern of the neighbors
+  - **to** - The state, the cell will transition to, once the rule applies
 
 -}
 type alias Rule state =
@@ -204,11 +205,11 @@ type alias Rule state =
     }
 
 
-type alias RuleSet state =
-    General.RuleSet (Neighborhood (RuleExpression (Maybe state))) (Maybe state)
+type alias RuleSet state comparable =
+    General.RuleSet (Neighborhood (RuleExpression (Maybe state))) (Maybe state) comparable
 
 
-ruleSet : Dict Int (List (Rule state)) -> RuleSet state
+ruleSet : Dict comparable (List (Rule state)) -> RuleSet state comparable
 ruleSet =
     General.RuleSet
 
@@ -220,8 +221,8 @@ Sometimes more then one automata should act on to the same `Grid`.
 For this reason it is its own type.
 
 -}
-type alias Automata state =
-    General.Automata (Neighborhood (Maybe state)) (Neighborhood (RuleExpression (Maybe state))) Location state
+type alias Automata state comparable =
+    General.Automata (Neighborhood (Maybe state)) (Neighborhood (RuleExpression (Maybe state))) Position state comparable
 
 
 {-| A symmetry is just a function that determines if a rule is sucessfully applied.
@@ -241,7 +242,7 @@ specified.
 **Most often you want at least rotational or mirrored symmetry.**
 **This function is only included for demonstration purposes.**
 
-Checkout CellAutomata.LifeLike for a more detailed description.
+Checkout [CellAutomata.LifeLike](https://package.elm-lang.org/packages/Orasund/elm-cellautomata/latest/CellAutomata-LifeLike) for a more detailed description.
 
 Our example with the ant, can now be implemented the following way:
 
@@ -264,7 +265,7 @@ This code is on purpose more complicated as it should be.
 If possible one should always use a custom symmetry.
 
 -}
-automataWithoutSymmetry : Order state -> List (Rule state) -> Automata state
+automataWithoutSymmetry : Order state comparable -> List (Rule state) -> Automata state comparable
 automataWithoutSymmetry =
     automata noSymmetry
 
@@ -328,9 +329,8 @@ The ant example can now be implemented the following way:
     )
         |> automata (rot90Symmetry rotState) order
 
-
 -}
-automata : Symmetry state -> Order state -> List (Rule state) -> Automata state
+automata : Symmetry state -> Order state comparable -> List (Rule state) -> Automata state comparable
 automata symmetry order listOfRules =
     General.Automata
         { ruleSet =
@@ -343,7 +343,7 @@ automata symmetry order listOfRules =
 
 
 type alias NeighborhoodFunction state =
-    Location -> Grid state -> Neighborhood (Maybe state)
+    Position -> Grid state -> Neighborhood (Maybe state)
 
 
 neighborhoodFunction : NeighborhoodFunction state
@@ -743,6 +743,6 @@ It has a wierd type, but thats because it is meant to be used with `Dict.update`
             grid
 
 -}
-step : Automata state -> Grid state -> (Location -> Maybe state -> Maybe state)
+step : Automata state comparable -> Grid state -> (Position -> Maybe state -> Maybe state)
 step =
     General.step

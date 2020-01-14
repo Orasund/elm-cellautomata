@@ -11,11 +11,11 @@ type alias Field location state =
     Dict (Comparable location) state
 
 
-type RuleSet neighborhood state
-    = RuleSet (Dict Int (List (Rule neighborhood state)))
+type RuleSet neighborhood state comparable
+    = RuleSet (Dict comparable (List (Rule neighborhood state)))
 
 
-ruleSet : (Maybe state -> Int) -> List (Rule neighborhood (Maybe state)) -> RuleSet neighborhood (Maybe state)
+ruleSet : (Maybe state -> comparable) -> List (Rule neighborhood (Maybe state)) -> RuleSet neighborhood (Maybe state) comparable
 ruleSet order =
     List.foldr
         (\({ from } as r) dict ->
@@ -55,16 +55,16 @@ type alias NeighborhoodFunction location neighborhood state =
     Comparable location -> Field (Comparable location) state -> neighborhood
 
 
-type Automata neighborhood ruleNeighborhood location state
+type Automata neighborhood ruleNeighborhood location state comparable
     = Automata
-        { ruleSet : RuleSet ruleNeighborhood (Maybe state)
+        { ruleSet : RuleSet ruleNeighborhood (Maybe state) comparable
         , symmetry : Symmetry neighborhood ruleNeighborhood (Maybe state)
         , neighborhoodFunction : NeighborhoodFunction location neighborhood state
-        , order : Maybe state -> Int
+        , order : Maybe state -> comparable
         }
 
 
-step : Automata neighborhood ruleNeighborhood location state -> Field location state -> (location -> Maybe state -> Maybe state)
+step : Automata neighborhood ruleNeighborhood location state comparable -> Field location state -> (location -> Maybe state -> Maybe state)
 step (Automata ({ neighborhoodFunction, symmetry, order } as automata)) field =
     \location state ->
         let

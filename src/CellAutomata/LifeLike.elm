@@ -1,5 +1,5 @@
 module CellAutomata.LifeLike exposing
-    ( Grid, State(..), Location
+    ( Grid, State(..), Position
     , AliveNeighbors(..), step, Automata, automata
     , RuleExpression(..), Neighborhood, anyNeighborhood, Rule
     , automataWithoutSymmetry
@@ -29,7 +29,7 @@ or `automataWithCustomSymmetry`. We will look at an example further down the doc
 
 ## Basic Types
 
-@docs Grid, State, Location
+@docs Grid, State, Position
 
 
 ## Basic Automata
@@ -92,13 +92,13 @@ order maybeState =
             1
 
 
-{-| The location is the unique identifier for any cell.
+{-| The position is the unique identifier for any cell.
 For our purpose we use `(x,y)`-coordinates.
 
 **Note:** The south of `(0,0)` is `(0,y)` while the north is `(0,-y)`.
 
 -}
-type alias Location =
+type alias Position =
     ( Int, Int )
 
 
@@ -113,7 +113,7 @@ This is why we represent the grid as a dictionary.
 
 -}
 type alias Grid =
-    Dict Location State
+    Dict Position State
 
 
 {-| RuleExpressions give us a very flexible way of talking about neighbors.
@@ -597,11 +597,11 @@ noSymmetry state neighborhood { from, neighbors, to } =
 
 
 type alias NeighborhoodFunction =
-    Location -> Grid -> Neighborhood (Maybe State)
+    Position -> Grid -> Neighborhood (Maybe State)
 
 
 neighborhoodFunction : NeighborhoodFunction
-neighborhoodFunction (( x, y )) grid =
+neighborhoodFunction ( x, y ) grid =
     { north = grid |> Dict.get ( x, y - 1 )
     , northEast = grid |> Dict.get ( x + 1, y - 1 )
     , east = grid |> Dict.get ( x + 1, y )
@@ -619,7 +619,7 @@ Sometimes more then one automata should act on to the same Grid.
 For this reason it is its own type.
 -}
 type alias Automata =
-    General.Automata (Neighborhood (Maybe State)) (Neighborhood (RuleExpression (Maybe State))) Location State
+    General.Automata (Neighborhood (Maybe State)) (Neighborhood (RuleExpression (Maybe State))) Position State Int
 
 
 {-| The input is a list of rules.
@@ -791,6 +791,6 @@ It has a wierd type, but thats because it is meant to be used with \``Dict.updat
         grid
 
 -}
-step : Automata -> Grid -> (Location -> Maybe State -> Maybe State)
+step : Automata -> Grid -> (Position -> Maybe State -> Maybe State)
 step =
     General.step
