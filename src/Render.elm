@@ -1,7 +1,7 @@
 module Render exposing (render)
 
 import Browser exposing (Document, document)
-import CellAutomata exposing (Grid, Location)
+import CellAutomata exposing (Grid, Position)
 import Dict
 import Html exposing (Html)
 import Html.Attributes as Attributes
@@ -26,7 +26,7 @@ height =
     width
 
 
-update : (Grid state -> Location -> Maybe state -> Maybe state) -> Msg -> Model state -> ( Model state, Cmd Msg )
+update : (Grid state -> Position -> Maybe state -> Maybe state) -> Msg -> Model state -> ( Model state, Cmd Msg )
 update step msg model =
     ( case msg of
         Tick ->
@@ -84,7 +84,7 @@ none =
 
 render :
     String
-    -> (Grid state -> Location -> Maybe state -> Maybe state)
+    -> (Grid state -> Position -> Maybe state -> Maybe state)
     -> (Maybe state -> Html Msg)
     -> Model state
     -> Program {} (Model state) Msg

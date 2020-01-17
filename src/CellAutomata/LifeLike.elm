@@ -122,7 +122,8 @@ When writing a rule for the neighbors, they can now have one of the following va
 
   - `(Exactly <| Just Alive)` - its alive
   - `(Exactly <| Nothing)` - its dead
-  - `Anything` - it may be dead or alive - we dont care.
+  - `(OneOf [ Just Alive , Nothing ]` - either alive or dead (but nothing else)
+  - `Anything` - it may be dead or alive or something else - we don't care.
 
 **Note:**
 If you would go back to counting the alive neighbors, the `Anything`-expression will

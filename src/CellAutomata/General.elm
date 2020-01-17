@@ -37,6 +37,7 @@ ruleSet order =
 
 type RuleExpression state
     = Exactly state
+    | OneOf (List state)
     | Anything
 
 

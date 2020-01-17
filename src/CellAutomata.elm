@@ -129,6 +129,7 @@ Saying something is `Anything`, it means its value is ignored.
 -}
 type RuleExpression state
     = Exactly state
+    | OneOf (List state)
     | Anything
 
 
@@ -372,6 +373,9 @@ subFuncCompareLists neighbors neighborhood directions dirList =
             case expression of
                 Exactly a ->
                     a == b
+
+                OneOf list ->
+                    list |> List.any ((==) b)
 
                 Anything ->
                     True

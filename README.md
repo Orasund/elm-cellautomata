@@ -31,11 +31,11 @@ I could not find any package that had something in that direction,
 so i created my own.
 
 ## Upcoming features
-* The `RuleExpression` is missing a `Either (List state)` case
 * More modules for different types of fields: **3D Grid**, **triangulations** and **graphs**
 * A adaption of [Nicky Case's emoji simulator](https://ncase.me/simulating/model/).
 In particular it should be able to generate functional elm code.
 
 ## Changelog
 
+* **3.0.0** - Added `OneOf (List state)` to `RuleExpression`.
 * **2.0.0** - Changed the `Order` from `Maybe state -> Int` to `Maybe state -> comparable`.
