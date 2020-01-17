@@ -65,6 +65,21 @@ type Automata neighborhood ruleNeighborhood location state comparable
         }
 
 
+findMap : (a -> Maybe b) -> List a -> Maybe b
+findMap predicate list =
+    case list of
+        [] ->
+            Nothing
+
+        first :: rest ->
+            case predicate first of
+                Just out ->
+                    Just out
+
+                Nothing ->
+                    findMap predicate rest
+
+
 step : Automata neighborhood ruleNeighborhood location state comparable -> Field location state -> (location -> Maybe state -> Maybe state)
 step (Automata ({ neighborhoodFunction, symmetry, order } as automata)) field =
     \location state ->
@@ -79,12 +94,5 @@ step (Automata ({ neighborhoodFunction, symmetry, order } as automata)) field =
         rSet
             |> Dict.get (order state)
             |> Maybe.withDefault []
-            |> List.filterMap (symmetry state neighborhood)
-            |> (\list ->
-                    case list of
-                        a :: _ ->
-                            a
-
-                        _ ->
-                            state
-               )
+            |> findMap (symmetry state neighborhood)
+            |> Maybe.withDefault state
