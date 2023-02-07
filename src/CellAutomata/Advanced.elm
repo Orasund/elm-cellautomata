@@ -4,14 +4,14 @@ import CellAutomata.Rule exposing (Rule)
 import Dict exposing (Dict)
 
 
-type alias Automata location state =
-    { rules : Dict String (List (Rule location state))
-    , neighbors : location -> List location
+type alias Automata comparable state =
+    { rules : Dict String (List (Rule comparable state))
+    , neighbors : comparable -> List comparable
     , groups : Maybe state -> String
     }
 
 
-automata : { rules : List (Rule location state), neighbors : location -> List location } -> Automata location state
+automata : { rules : List (Rule comparable state), neighbors : comparable -> List comparable } -> Automata comparable state
 automata args =
     { rules = Dict.singleton "" args.rules
     , neighbors = args.neighbors
@@ -19,7 +19,7 @@ automata args =
     }
 
 
-withGroups : (Maybe state -> String) -> Automata location state -> Automata location state
+withGroups : (Maybe state -> String) -> Automata comparable state -> Automata comparable state
 withGroups groups aut =
     { aut
         | rules =
@@ -45,11 +45,11 @@ withGroups groups aut =
     }
 
 
-step : Automata comparableLocation state -> Dict comparableLocation state -> (comparableLocation -> Maybe state -> Maybe state)
+step : Automata comparable state -> Dict comparable state -> comparable -> Maybe state -> Maybe state
 step args dict =
     \location state ->
         let
-            neighborhood : Dict comparableLocation state
+            neighborhood : Dict comparable state
             neighborhood =
                 args.neighbors location
                     |> List.filterMap (\k -> dict |> Dict.get k |> Maybe.map (Tuple.pair k))
