@@ -3,8 +3,11 @@
     "name": "Orasund/elm-cellautomata",
     "summary": "A packages that lets you write your own celluar automatas.",
     "license": "BSD-3-Clause",
-    "version": "3.0.1",
+    "version": "3.1.0",
     "exposed-modules": [
+        "CellAutomata.New",
+        "CellAutomata.Rule",
+        "CellAutomata.Grid",
         "CellAutomata.LifeLike",
         "CellAutomata"
     ],

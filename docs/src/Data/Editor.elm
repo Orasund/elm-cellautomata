@@ -1,6 +1,6 @@
 module Data.Editor exposing (..)
 
-import CellAutomata.Advanced as CellAutomata exposing (Automata)
+import CellAutomata.New as CellAutomata exposing (CellAutomata)
 import Dict exposing (Dict)
 
 
@@ -11,14 +11,14 @@ type alias Editor state =
     , width : Int
     , height : Int
     , isRunning : Bool
-    , automata : Automata ( Int, Int ) state
+    , automata : CellAutomata ( Int, Int ) state
     }
 
 
 init :
     { width : Int
     , height : Int
-    , automata : Automata ( Int, Int ) state
+    , automata : CellAutomata ( Int, Int ) state
     , selected : state
     }
     -> Dict ( Int, Int ) state

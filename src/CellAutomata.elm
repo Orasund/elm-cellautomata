@@ -7,7 +7,9 @@ module CellAutomata exposing
     , mapNeighborhood
     )
 
-{-| If you are new to this package, consider checking out CellAutomata.LifeLike first.
+{-| DEPRECATED. USE CellAutomata.New instead.
+
+If you are new to this package, consider checking out CellAutomata.LifeLike first.
 It is written as an introduction to this module.
 
 **If you want to create automatas with more then one state,**
@@ -294,8 +296,8 @@ The ant example can now be implemented the following way:
                 a ->
                     a
     in
-    ( List.concat
-        [   [Up,Left,Right,Down]
+    List.concat
+        [ [ Up, Left, Right, Down ]
             |> List.map
                 (\dir ->
                     { from = Just dir
@@ -303,31 +305,32 @@ The ant example can now be implemented the following way:
                     , to = Nothing
                     }
                 )
-        ,   [   { from = Nothing
-                , to = Just Up
-                , neighbors =
-                        { anyNeighborhood
-                        | south = Exactly <| Just Up
-                        , southEast = Exactly <| Just Wall
-                        }
+        , [ { from = Nothing
+            , to = Just Up
+            , neighbors =
+                { anyNeighborhood
+                    | south = Exactly <| Just Up
+                    , southEast = Exactly <| Just Wall
                 }
-            ,   { from = Nothing
-                , to = Just Right
-                , neighbors =
-                    { anyNeighborhood
+            }
+          , { from = Nothing
+            , to = Just Right
+            , neighbors =
+                { anyNeighborhood
                     | south = Exactly <| Just Wall
-                    , west = Exactly <| Just Up }
-                    }
-            ,   { from = Nothing
-                , to = Just Right
-                , neighbors =
-                    { anyNeighborhood
+                    , west = Exactly <| Just Up
+                }
+            }
+          , { from = Nothing
+            , to = Just Right
+            , neighbors =
+                { anyNeighborhood
                     | southWest = Exactly <| Just Wall
-                    , west = Exactly <| Just Down }
-                    }
-            ]
+                    , west = Exactly <| Just Down
+                }
+            }
+          ]
         ]
-    )
         |> automata (rot90Symmetry rotState) order
 
 -}
@@ -738,7 +741,7 @@ It has a wierd type, but thats because it is meant to be used with `Dict.update`
                         (\y ->
                             Dict.update
                                 ( x, y )
-                                ( ( x, y )
+                                (( x, y )
                                     |> step automata grid
                                 )
                         )

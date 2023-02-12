@@ -7,7 +7,9 @@ module CellAutomata.LifeLike exposing
     , automataWithCustomSymmetry
     )
 
-{-| This module was created to give a smooth introduction to the main module,
+{-| DEPRECATED. USE CellAutomata.New with CellAuomata.Grid and CellAutomata.Rule instead.
+
+This module was created to give a smooth introduction to the main module,
 but also because for a lot of use cases this simpler version is already enough.
 
 **If you know of Conway's Game of Life and want to make something similiar,**
@@ -163,11 +165,11 @@ type alias Neighborhood state =
 For example, if we would want to only consider the 4 adjacent neighbors,
 we might specify it the following way
 
-    {anyNeighborhood
-    | north : Exactly a
-    , east : Exactly b
-    , south : Exactly c
-    , west : Exactly d
+    { anyNeighborhood
+        | north = Exactly a
+        , east = Exactly b
+        , south = Exactly c
+        , west = Exactly d
     }
 
 -}
@@ -648,7 +650,7 @@ Implemented, these rules look like this:
       , to = Just Alive
       }
     ]
-    |> automata
+        |> automata
 
 The order of the rules are important: the automata will go through the list,
 and use the first rule it can apply.
@@ -683,43 +685,43 @@ The implementation would be the following list:
 
     let
         neighbors a b c d =
-            {anyNeighborhood
-            | north = Exactly a
-            , east = Exactly b
-            , south = Exactly c
-            , west = Exactly d
+            { anyNeighborhood
+                | north = Exactly a
+                , east = Exactly b
+                , south = Exactly c
+                , west = Exactly d
             }
     in
-    [ {from = Just Alive
+    [ { from = Just Alive
       , to = Just Alive
       , neighbors = neighbors (Just Alive) Nothing Nothing Nothing
       }
-    , {from = Just Alive
+    , { from = Just Alive
       , to = Just Alive
       , neighbors = neighbors Nothing (Just Alive) Nothing Nothing
       }
-    , {from = Just Alive
+    , { from = Just Alive
       , to = Just Alive
       , neighbors = neighbors Nothing Nothing (Just Alive) Nothing
       }
-    , {from = Just Alive
+    , { from = Just Alive
       , to = Just Alive
       , neighbors = neighbors Nothing Nothing Nothing (Just Alive)
       }
-    , {from = Just Alive, to = Nothing, neighbors = anyNeighborhood}
-    , {from = Nothing
+    , { from = Just Alive, to = Nothing, neighbors = anyNeighborhood }
+    , { from = Nothing
       , to = Just Alive
       , neighbors = neighbors (Just Alive) Nothing Nothing Nothing
       }
-    , {from = Nothing
+    , { from = Nothing
       , to = Just Alive
       , neighbors = neighbors Nothing (Just Alive) Nothing Nothing
       }
-    , {from = Nothing
+    , { from = Nothing
       , to = Just Alive
       , neighbors = neighbors Nothing Nothing (Just Alive) Nothing
       }
-    , {from = Nothing
+    , { from = Nothing
       , to = Just Alive
       , neighbors = neighbors Nothing Nothing Nothing (Just Alive)
       }
@@ -739,22 +741,22 @@ Going back to the old example, this can now be done the following way:
 
     let
         neighbors a b c d =
-            {anyNeighborhood
-            | north = Exactly a
-            , east = Exactly b
-            , south = Exactly c
-            , west = Exactly d
+            { anyNeighborhood
+                | north = Exactly a
+                , east = Exactly b
+                , south = Exactly c
+                , west = Exactly d
             }
     in
-    [ {from = Just Alive
+    [ { from = Just Alive
       , to = Just Alive
       , neighbors = neighbors (Just Alive) Nothing Nothing Nothing
       }
-    , {from = Just Alive
+    , { from = Just Alive
       , to = Nothing
       , neighbors = anyNeighborhood
       }
-    , {from = Nothing
+    , { from = Nothing
       , to = Just Alive
       , neighbors = neighbors (Just Alive) Nothing Nothing Nothing
       }
@@ -778,18 +780,18 @@ automataWithCustomSymmetry symmetry listOfRules =
 It has a wierd type, but thats because it is meant to be used with \``Dict.update`:
 
     List.range 0 12
-    |> List.foldl
-        (\x g ->
-            List.range 0 10
-            |> List.foldl
-                (\y ->
-                    Dict.update
-                        (x,y)
-                        ( (x,y) |> step automata grid )
-                )
-                g
-        )
-        grid
+        |> List.foldl
+            (\x g ->
+                List.range 0 10
+                    |> List.foldl
+                        (\y ->
+                            Dict.update
+                                ( x, y )
+                                (( x, y ) |> step automata grid)
+                        )
+                        g
+            )
+            grid
 
 -}
 step : Automata -> Grid -> (Position -> Maybe State -> Maybe State)

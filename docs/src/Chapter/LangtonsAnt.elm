@@ -1,6 +1,6 @@
 module Chapter.LangtonsAnt exposing (..)
 
-import CellAutomata.Advanced as CellAutomata exposing (Automata)
+import CellAutomata.New as CellAutomata exposing (CellAutomata)
 import CellAutomata.Grid
 import CellAutomata.Rule exposing (Rule)
 import Data.Editor exposing (Editor)
@@ -132,9 +132,9 @@ moveFromRule dir onAlive =
            )
 
 
-automata : Automata ( Int, Int ) State
+automata : CellAutomata ( Int, Int ) State
 automata =
-    CellAutomata.automata
+    CellAutomata.new
         { rules =
             directions
                 |> List.concatMap (\dir -> [ True, False ] |> List.map (Tuple.pair dir))
@@ -340,9 +340,9 @@ moveFromRule dir onAlive =
                 CellAutomata.Rule.to Alive
            )
 
-automata : Automata ( Int, Int ) State
+automata : CellAutomata ( Int, Int ) State
 automata =
-    CellAutomata.automata
+    CellAutomata.new
         { rules =
             directions
                 |> List.concatMap (\\dir -> [ True, False ] |> List.map (Tuple.pair dir))

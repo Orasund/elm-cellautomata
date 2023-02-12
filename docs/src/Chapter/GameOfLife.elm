@@ -1,6 +1,6 @@
 module Chapter.GameOfLife exposing (..)
 
-import CellAutomata.Advanced as CellAutomata
+import CellAutomata.New as CellAutomata
 import CellAutomata.Grid
 import CellAutomata.Rule
 import Data.Editor exposing (Editor)
@@ -21,7 +21,7 @@ init =
             , height = 10
             , selected = ()
             , automata =
-                CellAutomata.automata
+                CellAutomata.new
                     { rules =
                         [ CellAutomata.Rule.fromNothing
                             |> CellAutomata.Rule.withNeighborhood
@@ -73,7 +73,7 @@ The Rules are simple:
 We can turn these rules directly into code:
 
 ```
-CellAutomata.automata
+CellAutomata.new
     { rules =
         [ CellAutomata.Rule.fromNothing
             |> CellAutomata.Rule.withNeighborhood

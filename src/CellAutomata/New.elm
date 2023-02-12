@@ -1,25 +1,37 @@
-module CellAutomata.Advanced exposing (..)
+module CellAutomata.New exposing (CellAutomata, new, step, withGroups)
+
+{-| This module is the new version of the cell automata package.
+
+@docs CellAutomata, new, step, withGroups
+
+-}
 
 import CellAutomata.Rule exposing (Rule)
 import Dict exposing (Dict)
 
 
-type alias Automata comparable state =
+{-| This type contains the needed information to compute the next step of an automata.
+-}
+type alias CellAutomata comparable state =
     { rules : Dict String (List (Rule comparable state))
     , neighbors : comparable -> List { location : comparable, direction : comparable }
     , groups : Maybe state -> String
     }
 
 
-automata : { rules : List (Rule comparable state), neighbors : comparable -> List { location : comparable, direction : comparable } } -> Automata comparable state
-automata args =
+{-| Construct a new cell automata
+-}
+new : { rules : List (Rule comparable state), neighbors : comparable -> List { location : comparable, direction : comparable } } -> CellAutomata comparable state
+new args =
     { rules = Dict.singleton "" args.rules
     , neighbors = args.neighbors
     , groups = always ""
     }
 
 
-withGroups : (Maybe state -> String) -> Automata comparable state -> Automata comparable state
+{-| If you have a lot of rules, it might be good to group them by initial state. To do so, you have to provide a function that map the states to the names of the groups.
+-}
+withGroups : (Maybe state -> String) -> CellAutomata comparable state -> CellAutomata comparable state
 withGroups groups aut =
     { aut
         | rules =
@@ -45,7 +57,9 @@ withGroups groups aut =
     }
 
 
-step : Automata comparable state -> Dict comparable state -> comparable -> Maybe state -> Maybe state
+{-| Compute a step using a cell automata
+-}
+step : CellAutomata comparable state -> Dict comparable state -> comparable -> Maybe state -> Maybe state
 step args dict =
     \location state ->
         let

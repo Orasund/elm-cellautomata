@@ -6893,7 +6893,7 @@ var $dtwrks$elm_book$ElmBook$Chapter$withStatefulComponentList = F2(
 var $author$project$Chapter$GameOfLife$chapter = function (args) {
 	return A2(
 		$dtwrks$elm_book$ElmBook$Chapter$render,
-		'\nConway\'s Game of Life is the most known cell automata.\n\nThe Rules are simple:\n\n* A "Dead" cell becomes "Alive" if there are exactly 3 alive neighbors.\n* An "Alive" cell stays alive if it has 2 or 3 neighbors.\n\n<component with-label="Editor"/>\n\nWe can turn these rules directly into code:\n\n```\nCellAutomata.automata\n    { rules =\n        [ CellAutomata.Rule.fromNothing\n            |> CellAutomata.Rule.withNeighborhood\n                (\\dict ->\n                    Dict.size dict == 3\n                )\n            |> CellAutomata.Rule.to ()\n        , CellAutomata.Rule.from ()\n            |> CellAutomata.Rule.withNeighborhood\n                (\\dict ->\n                    Dict.size dict\n                        |> (\\int -> int < 2 || int > 3)\n                )\n            |> CellAutomata.Rule.toNothing\n        ]\n    , neighbors = CellAutomata.Grid.surroundingNeighbors\n    }\n```',
+		'\nConway\'s Game of Life is the most known cell automata.\n\nThe Rules are simple:\n\n* A "Dead" cell becomes "Alive" if there are exactly 3 alive neighbors.\n* An "Alive" cell stays alive if it has 2 or 3 neighbors.\n\n<component with-label="Editor"/>\n\nWe can turn these rules directly into code:\n\n```\nCellAutomata.new\n    { rules =\n        [ CellAutomata.Rule.fromNothing\n            |> CellAutomata.Rule.withNeighborhood\n                (\\dict ->\n                    Dict.size dict == 3\n                )\n            |> CellAutomata.Rule.to ()\n        , CellAutomata.Rule.from ()\n            |> CellAutomata.Rule.withNeighborhood\n                (\\dict ->\n                    Dict.size dict\n                        |> (\\int -> int < 2 || int > 3)\n                )\n            |> CellAutomata.Rule.toNothing\n        ]\n    , neighbors = CellAutomata.Grid.surroundingNeighbors\n    }\n```',
 		A2(
 			$dtwrks$elm_book$ElmBook$Chapter$withStatefulComponentList,
 			_List_fromArray(
@@ -6927,7 +6927,7 @@ var $author$project$Chapter$LangtonsAnt$toString = function (state) {
 var $author$project$Chapter$LangtonsAnt$chapter = function (args) {
 	return A2(
 		$dtwrks$elm_book$ElmBook$Chapter$render,
-		'\n\nThe Langton\'s Ant is a cell automata that generates pseudo randomness before converging to a repeating pattern.\n\nThe rules are quite simple:\n\n* If the Ant is on a dead cell if moves clockwise else counter clockwise\n* When moving, the cell under the ant turns alive if has been dead before and vice versa.\n\n<component with-label="Editor"/>\n\nThe Ant has a direction and the information whether it is currently on a dead or on an alive cell.\n\n```\ntype Direction\n    = North\n    | East\n    | South\n    | West\n\ntype State\n    = Alive\n    | Ant Direction Bool\n```\n\nTo work with directions we have to introduces some utility functions.\n\n```\ndirections : List Direction\ndirections =\n    [ North, East, South, West ]\n\n\nturnLeft : Direction -> Direction\nturnLeft dir =\n    case dir of\n        North ->\n            West\n\n        East ->\n            North\n\n        South ->\n            East\n\n        West ->\n            South\n\n\nturnRight : Direction -> Direction\nturnRight dir =\n    case dir of\n        North ->\n            East\n\n        East ->\n            South\n\n        South ->\n            West\n\n        West ->\n            North\n\n\ntoDirection : ( Int, Int ) -> Direction\ntoDirection ( x, y ) =\n    if x == 0 then\n        if y < 0 then\n            North\n\n        else\n            South\n\n    else if x < 0 then\n        West\n\n    else\n        East\n\n\nfromDirection : Direction -> ( Int, Int )\nfromDirection dir =\n    case dir of\n        North ->\n            ( 0, -1 )\n\n        East ->\n            ( 1, 0 )\n\n        South ->\n            ( 0, 1 )\n\n        West ->\n            ( -1, 0 )\n```\n\nNext we can define the rules.\n\nWe map over all combinations of directions and the cell below the ant.\n\nTo make the automata more performant, we also add groups to the states. \nThe ant is grouped by the cell below it.\n\n```\nmoveToRule : Direction -> Bool -> Bool -> Rule ( Int, Int ) State\nmoveToRule dir onAlive from =\n    (if from then\n        CellAutomata.Rule.from Alive\n\n     else\n        CellAutomata.Rule.fromNothing\n    )\n        |> CellAutomata.Rule.withNeighborhood\n            (\\dict ->\n                dir\n                    |> turnLeft\n                    |> turnLeft\n                    |> fromDirection\n                    |> (\\position ->\n                            Dict.get position dict\n                                == Just\n                                    (Ant\n                                        (if onAlive then\n                                            dir |> turnLeft\n\n                                         else\n                                            dir |> turnRight\n                                        )\n                                        onAlive\n                                    )\n                       )\n            )\n        |> CellAutomata.Rule.to (Ant dir from)\n\n\nmoveFromRule : Direction -> Bool -> Rule ( Int, Int ) State\nmoveFromRule dir onAlive =\n    CellAutomata.Rule.from (Ant dir onAlive)\n        |> (if onAlive then\n                CellAutomata.Rule.toNothing\n\n            else\n                CellAutomata.Rule.to Alive\n           )\n\nautomata : Automata ( Int, Int ) State\nautomata =\n    CellAutomata.automata\n        { rules =\n            directions\n                |> List.concatMap (\\dir -> [ True, False ] |> List.map (Tuple.pair dir))\n                |> List.concatMap\n                    (\\( dir, onAlive ) ->\n                        ([ True, False ]\n                            |> List.map (moveToRule dir onAlive)\n                        )\n                            ++ [ moveFromRule dir onAlive ]\n                    )\n        , neighbors = CellAutomata.Grid.surroundingNeighbors\n        }\n        |> CellAutomata.withGroups\n            (\\maybe ->\n                case maybe of\n                    Just (Ant _ True) ->\n                        "onAlive"\n                    \n                    Just (Ant _ False) ->\n                        "onDead"\n                    _ ->\n                        ""\n            )\n```',
+		'\n\nThe Langton\'s Ant is a cell automata that generates pseudo randomness before converging to a repeating pattern.\n\nThe rules are quite simple:\n\n* If the Ant is on a dead cell if moves clockwise else counter clockwise\n* When moving, the cell under the ant turns alive if has been dead before and vice versa.\n\n<component with-label="Editor"/>\n\nThe Ant has a direction and the information whether it is currently on a dead or on an alive cell.\n\n```\ntype Direction\n    = North\n    | East\n    | South\n    | West\n\ntype State\n    = Alive\n    | Ant Direction Bool\n```\n\nTo work with directions we have to introduces some utility functions.\n\n```\ndirections : List Direction\ndirections =\n    [ North, East, South, West ]\n\n\nturnLeft : Direction -> Direction\nturnLeft dir =\n    case dir of\n        North ->\n            West\n\n        East ->\n            North\n\n        South ->\n            East\n\n        West ->\n            South\n\n\nturnRight : Direction -> Direction\nturnRight dir =\n    case dir of\n        North ->\n            East\n\n        East ->\n            South\n\n        South ->\n            West\n\n        West ->\n            North\n\n\ntoDirection : ( Int, Int ) -> Direction\ntoDirection ( x, y ) =\n    if x == 0 then\n        if y < 0 then\n            North\n\n        else\n            South\n\n    else if x < 0 then\n        West\n\n    else\n        East\n\n\nfromDirection : Direction -> ( Int, Int )\nfromDirection dir =\n    case dir of\n        North ->\n            ( 0, -1 )\n\n        East ->\n            ( 1, 0 )\n\n        South ->\n            ( 0, 1 )\n\n        West ->\n            ( -1, 0 )\n```\n\nNext we can define the rules.\n\nWe map over all combinations of directions and the cell below the ant.\n\nTo make the automata more performant, we also add groups to the states. \nThe ant is grouped by the cell below it.\n\n```\nmoveToRule : Direction -> Bool -> Bool -> Rule ( Int, Int ) State\nmoveToRule dir onAlive from =\n    (if from then\n        CellAutomata.Rule.from Alive\n\n     else\n        CellAutomata.Rule.fromNothing\n    )\n        |> CellAutomata.Rule.withNeighborhood\n            (\\dict ->\n                dir\n                    |> turnLeft\n                    |> turnLeft\n                    |> fromDirection\n                    |> (\\position ->\n                            Dict.get position dict\n                                == Just\n                                    (Ant\n                                        (if onAlive then\n                                            dir |> turnLeft\n\n                                         else\n                                            dir |> turnRight\n                                        )\n                                        onAlive\n                                    )\n                       )\n            )\n        |> CellAutomata.Rule.to (Ant dir from)\n\n\nmoveFromRule : Direction -> Bool -> Rule ( Int, Int ) State\nmoveFromRule dir onAlive =\n    CellAutomata.Rule.from (Ant dir onAlive)\n        |> (if onAlive then\n                CellAutomata.Rule.toNothing\n\n            else\n                CellAutomata.Rule.to Alive\n           )\n\nautomata : CellAutomata ( Int, Int ) State\nautomata =\n    CellAutomata.new\n        { rules =\n            directions\n                |> List.concatMap (\\dir -> [ True, False ] |> List.map (Tuple.pair dir))\n                |> List.concatMap\n                    (\\( dir, onAlive ) ->\n                        ([ True, False ]\n                            |> List.map (moveToRule dir onAlive)\n                        )\n                            ++ [ moveFromRule dir onAlive ]\n                    )\n        , neighbors = CellAutomata.Grid.surroundingNeighbors\n        }\n        |> CellAutomata.withGroups\n            (\\maybe ->\n                case maybe of\n                    Just (Ant _ True) ->\n                        "onAlive"\n                    \n                    Just (Ant _ False) ->\n                        "onDead"\n                    _ ->\n                        ""\n            )\n```',
 		A2(
 			$dtwrks$elm_book$ElmBook$Chapter$withStatefulComponentList,
 			_List_fromArray(
@@ -7277,7 +7277,7 @@ var $elm$core$Dict$fromList = function (assocs) {
 		$elm$core$Dict$empty,
 		assocs);
 };
-var $author$project$CellAutomata$Advanced$internalFindMap = F2(
+var $author$project$CellAutomata$New$internalFindMap = F2(
 	function (predicate, list) {
 		internalFindMap:
 		while (true) {
@@ -7314,7 +7314,7 @@ var $elm$core$Tuple$pair = F2(
 	function (a, b) {
 		return _Utils_Tuple2(a, b);
 	});
-var $author$project$CellAutomata$Advanced$step = F2(
+var $author$project$CellAutomata$New$step = F2(
 	function (args, dict) {
 		return F2(
 			function (location, state) {
@@ -7332,7 +7332,7 @@ var $author$project$CellAutomata$Advanced$step = F2(
 					$elm$core$Maybe$withDefault,
 					state,
 					A2(
-						$author$project$CellAutomata$Advanced$internalFindMap,
+						$author$project$CellAutomata$New$internalFindMap,
 						function (rule) {
 							return (_Utils_eq(rule.from, state) && rule.neighborhood(neighborhood)) ? $elm$core$Maybe$Just(rule.to) : $elm$core$Maybe$Nothing;
 						},
@@ -7374,7 +7374,7 @@ var $author$project$Data$Editor$update = function (editor) {
 									$elm$core$Dict$update,
 									_Utils_Tuple2(x, y),
 									A3(
-										$author$project$CellAutomata$Advanced$step,
+										$author$project$CellAutomata$New$step,
 										editor.automata,
 										editor.dict,
 										_Utils_Tuple2(x, y)),
@@ -7420,17 +7420,6 @@ var $elm$core$Basics$always = F2(
 	function (a, _v0) {
 		return a;
 	});
-var $elm$core$Dict$singleton = F2(
-	function (key, value) {
-		return A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Black, key, value, $elm$core$Dict$RBEmpty_elm_builtin, $elm$core$Dict$RBEmpty_elm_builtin);
-	});
-var $author$project$CellAutomata$Advanced$automata = function (args) {
-	return {
-		groups: $elm$core$Basics$always(''),
-		neighbors: args.neighbors,
-		rules: A2($elm$core$Dict$singleton, '', args.rules)
-	};
-};
 var $author$project$CellAutomata$Rule$fromNothing = {
 	from: $elm$core$Maybe$Nothing,
 	neighborhood: $elm$core$Basics$always(true),
@@ -7447,6 +7436,17 @@ var $author$project$Data$Editor$init = F2(
 	function (args, dict) {
 		return {automata: args.automata, dict: dict, height: args.height, init: dict, isRunning: false, selected: args.selected, width: args.width};
 	});
+var $elm$core$Dict$singleton = F2(
+	function (key, value) {
+		return A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Black, key, value, $elm$core$Dict$RBEmpty_elm_builtin, $elm$core$Dict$RBEmpty_elm_builtin);
+	});
+var $author$project$CellAutomata$New$new = function (args) {
+	return {
+		groups: $elm$core$Basics$always(''),
+		neighbors: args.neighbors,
+		rules: A2($elm$core$Dict$singleton, '', args.rules)
+	};
+};
 var $elm$core$Dict$sizeHelp = F2(
 	function (n, dict) {
 		sizeHelp:
@@ -7555,7 +7555,7 @@ var $author$project$CellAutomata$Rule$withNeighborhood = F2(
 var $author$project$Chapter$GameOfLife$init = A2(
 	$author$project$Data$Editor$init,
 	{
-		automata: $author$project$CellAutomata$Advanced$automata(
+		automata: $author$project$CellAutomata$New$new(
 			{
 				neighbors: $author$project$CellAutomata$Grid$surroundingNeighbors,
 				rules: _List_fromArray(
@@ -7671,7 +7671,7 @@ var $elm$core$Dict$values = function (dict) {
 		_List_Nil,
 		dict);
 };
-var $author$project$CellAutomata$Advanced$withGroups = F2(
+var $author$project$CellAutomata$New$withGroups = F2(
 	function (groups, aut) {
 		return _Utils_update(
 			aut,
@@ -7704,7 +7704,7 @@ var $author$project$CellAutomata$Advanced$withGroups = F2(
 			});
 	});
 var $author$project$Chapter$LangtonsAnt$automata = A2(
-	$author$project$CellAutomata$Advanced$withGroups,
+	$author$project$CellAutomata$New$withGroups,
 	function (maybe) {
 		if ((maybe.$ === 'Just') && (maybe.a.$ === 'Ant')) {
 			if (maybe.a.b) {
@@ -7718,7 +7718,7 @@ var $author$project$Chapter$LangtonsAnt$automata = A2(
 			return '';
 		}
 	},
-	$author$project$CellAutomata$Advanced$automata(
+	$author$project$CellAutomata$New$new(
 		{
 			neighbors: $author$project$CellAutomata$Grid$surroundingNeighbors,
 			rules: A2(
