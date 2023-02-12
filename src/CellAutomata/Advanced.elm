@@ -6,12 +6,12 @@ import Dict exposing (Dict)
 
 type alias Automata comparable state =
     { rules : Dict String (List (Rule comparable state))
-    , neighbors : comparable -> List comparable
+    , neighbors : comparable -> List { location : comparable, direction : comparable }
     , groups : Maybe state -> String
     }
 
 
-automata : { rules : List (Rule comparable state), neighbors : comparable -> List comparable } -> Automata comparable state
+automata : { rules : List (Rule comparable state), neighbors : comparable -> List { location : comparable, direction : comparable } } -> Automata comparable state
 automata args =
     { rules = Dict.singleton "" args.rules
     , neighbors = args.neighbors
@@ -52,7 +52,12 @@ step args dict =
             neighborhood : Dict comparable state
             neighborhood =
                 args.neighbors location
-                    |> List.filterMap (\k -> dict |> Dict.get k |> Maybe.map (Tuple.pair k))
+                    |> List.filterMap
+                        (\k ->
+                            dict
+                                |> Dict.get k.location
+                                |> Maybe.map (Tuple.pair k.direction)
+                        )
                     |> Dict.fromList
         in
         args.rules
@@ -60,7 +65,7 @@ step args dict =
             |> Maybe.withDefault []
             |> internalFindMap
                 (\rule ->
-                    if rule.neighborhood neighborhood then
+                    if rule.from == state && rule.neighborhood neighborhood then
                         rule.to
                             |> Just
 

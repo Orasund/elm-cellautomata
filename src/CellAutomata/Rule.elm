@@ -1,8 +1,8 @@
-module CellAutomata.Rule exposing (Rule, fromNothing, from, withNeighborhood, to)
+module CellAutomata.Rule exposing (Rule, fromNothing, from, withNeighborhood, to, toNothing)
 
 {-| module for building rules.
 
-@docs Rule, fromNothing, from, withNeighborhood, to
+@docs Rule, fromNothing, from, withNeighborhood, to, toNothing
 
 -}
 
@@ -49,3 +49,9 @@ withNeighborhood neighborhood rule =
 to : state -> Rule direction state -> Rule direction state
 to state rule =
     { rule | to = Just state }
+
+{-| The content of the cell will be removed
+-}
+toNothing : Rule direction state -> Rule direction state
+toNothing rule =
+    { rule | to = Nothing}
