@@ -61,8 +61,16 @@ chapter args =
               )
             ]
         |> ElmBook.Chapter.render """
-        
+Conway's Game of Life is the most known cell automata.
+
+The Rules are simple:
+
+* A "Dead" cell becomes "Alive" if there are exactly 3 alive neighbors.
+* An "Alive" cell stays alive if it has 2 or 3 neighbors.
+
 <component with-label="Editor"/>
+
+We can turn these rules directly into code:
 
 ```
 CellAutomata.automata

@@ -195,8 +195,17 @@ chapter args =
               )
             ]
         |> ElmBook.Chapter.render """
-        
+
+The Langton's Ant is a cell automata that generates pseudo randomness before converging to a repeating pattern.
+
+The rules are quite simple:
+
+* If the Ant is on a dead cell if moves clockwise else counter clockwise
+* When moving, the cell under the ant turns alive if has been dead before and vice versa.
+
 <component with-label="Editor"/>
+
+The Ant has a direction and the information whether it is currently on a dead or on an alive cell.
 
 ```
 type Direction
@@ -210,6 +219,7 @@ type State
     | Ant Direction Bool
 ```
 
+To work with directions we have to introduces some utility functions.
 
 ```
 directions : List Direction
@@ -280,6 +290,13 @@ fromDirection dir =
         West ->
             ( -1, 0 )
 ```
+
+Next we can define the rules.
+
+We map over all combinations of directions and the cell below the ant.
+
+To make the automata more performant, we also add groups to the states. 
+The ant is grouped by the cell below it.
 
 ```
 moveToRule : Direction -> Bool -> Bool -> Rule ( Int, Int ) State
